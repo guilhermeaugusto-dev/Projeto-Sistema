@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico</title>
+  <link rel="stylesheet" href="hitorico.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
+  <script src="../../js/historico.js" defer></script>
+</head>
+<body>
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <img src="../../imagens/procaj.png" alt="PROCA Logo" class="logo" />
+      <nav>
+        <ul>
+          <li>
+            <a href="../dashboard/dashboard.html" class="dashboard active">
+              <img src="../../imagens/icone-casa.png" alt="" class="menu-icone"/>
+              <span class="link-texto">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="../estoque/estoque.html" class="estoque">
+              <img src="../../imagens/icone-caixa80.png" alt="" class="menu-icone"/>
+              <span class="link-texto">Estoque</span>
+            </a>
+          </li>
+          <li>
+            <a href="../historico/hitorico.html" class="estoque">
+              <img src="../../imagens/icone-hitorico.png" alt="" class="menu-icone"/>
+              <span class="link-texto">Histórico</span>
+            </a>
+          </li>
+          <li>
+            <a href="../patrimonio/patrimonio.html" class="estoque">
+              <img src="../../imagens/icone-patrimonio.png" alt="" class="menu-icone"/>
+              <span class="link-texto">Patrimônio</span>
+            </a>
+          </li>
+          <li id="menu-cadastrar" style="display:none;">
+            <a href="../Cadastro/cadastro.html" class="estoque">
+              <img src="../../imagens/admin.png" alt="" class="menu-icone"/>
+              <span class="link-texto">Admin</span>
+            </a>
+          </li>
+
+          <li class="menu-item-inferior">
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+ <main class="main-content">
+      <header class="header">
+        <h1><strong>Histórico</strong></h1>
+        <div class="user-menu">
+          <span id="user-name">Olá, Usuário</span>
+            <div class="dropdown" id="user-dropdown">
+            <button id="logout-btn">Sair</button>
+          </div>
+          <img src="../../imagens/icone-conta.png" alt="Usuário" id="user-icon">
+        </div>
+      </header>
+
+      <div class="toolbar">
+        <div class="search-container">
+          <input type="text" placeholder="Pesquisar..." class="search-bar" id="filtro-pesquisa">
+        </div>
+        <div class="actions">
+          <button type="button" class="btn filtrar" id="btn-abrir-filtro">
+            <img src="../../imagens/icone-opçoes.png" alt="Filtrar">
+            <span>Filtrar</span>
+          </button>
+          
+      
+          <button type="button" class="btn filtrar" id="btn-exportar" title="Exportar histórico">
+            <span>Exportar</span>
+          </button>
+        </div>
+      </div>
+
+      <section class="table-wrapper">
+        <table class="tabela-estoque">
+          <thead>
+            <tr>
+              <th>Nome do Produto</th>
+              <th>Quantidade</th>
+              <th>Categoria</th>
+              <th>Data</th>
+              <th>Tipo</th>
+            </tr>
+          </thead>
+          <tbody id="corpo-tabela"></tbody>
+        </table>
+      </section>
+
+      <div class="paginacao-container">
+        <button id="btn-anterior" class="btn-paginacao">&lt;</button>
+        <button id="btn-proximo" class="btn-paginacao">&gt;</button>
+      </div>
+    </main>
+  </div>
+
+
+  <div id="modal-filtro-container" class="modal-container">
+    <div class="modal">
+      <button type="button" id="fechar-filtro-modal" class="fechar-modal">&times;</button>
+      <h2>Opções de Filtro</h2>
+      <form id="form-filtro">
+        <div class="form-group">
+          <label for="filtro-data">Filtrar por Data de Criação</label>
+          <input type="date" id="filtro-data">
+        </div>
+        <div class="form-group">
+          <label for="filtro-categoria">Filtrar por Categoria</label>
+          <input type="text" id="filtro-categoria" placeholder="Digite uma categoria...">
+        </div>
+        <div class="form-group">
+          <label for="filtro-quantidade">Ordenar por Quantidade</label>
+          <select id="filtro-quantidade">
+            <option value="">Sem ordenação</option>
+            <option value="maior">Maior Quantidade</option>
+            <option value="menor">Menor Quantidade</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="filtro-tipo">Filtrar por Tipo</label>
+          <select id="filtro-tipo">
+            <option value="">Todos</option>
+            <option value="entrada">Entrada</option>
+            <option value="saida">Saída</option>
+            <option value="cadastro">Cadastro</option>
+          </select>
+        </div>
+        <div class="filtro-actions">
+          <button type="button" id="btn-limpar-filtro" class="btn-limpar">Limpar Filtros</button>
+          <button type="submit" class="btn-salvar">Aplicar Filtro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Exportação do Histórico -->
+  <div id="modal-exportar-container" class="modal-container">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Exportar Histórico</h3>
+   <button id="fechar-exportar-modal" class="close-btn"></button>
+          </div>
+        <form id="form-exportar" class="modal-form">
+            <div class="form-group">
+                <label for="tipo-movimentacao">Tipo de Movimentação</label>
+                <select id="tipo-movimentacao">
+                    <option value="">Todas as movimentações</option>
+                    <option value="cadastro">Cadastro</option>
+                    <option value="entrada">Apenas Entradas</option>
+                    <option value="saida">Apenas Saídas</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="categoria-export">Categoria</label>
+                <input type="text" id="categoria-export" placeholder="Ex: Eletrônicos, Móveis...">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="data-inicio">Data Início</label>
+                    <input type="date" id="data-inicio">
+                </div>
+                <div class="form-group">
+                    <label for="data-fim">Data Fim</label>
+                    <input type="date" id="data-fim">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quantidade-minima">Quantidade Mínima</label>
+                    <input type="number" id="quantidade-minima" min="0" placeholder="Ex: 10">
+                </div>
+                <div class="form-group">
+                    <label for="quantidade-maxima">Quantidade Máxima</label>
+                    <input type="number" id="quantidade-maxima" min="0" placeholder="Ex: 100">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" id="cancelar-exportar" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Baixar Planilha</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</body>
+</html>

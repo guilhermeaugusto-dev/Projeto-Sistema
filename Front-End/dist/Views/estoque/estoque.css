@@ -1,0 +1,651 @@
+@font-face {
+  font-family: 'Century Gothic';
+  src: url('../../fontes/FontsFree-Net-Century-Gothic.ttf') format('truetype');
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Century Gothic';
+}
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+.user-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-menu img {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+#user-name {
+  font-weight: bold;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.dropdown button {
+  background: #ff4d4d;
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+.sidebar {
+  width: 380px;
+  background: linear-gradient(0deg, #FF6B1A, #FF6B1A);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  border: 1px solid rgba(0, 0, 0, 1);
+}
+
+.sidebar .logo {
+  width: 380px;
+  height: 380px;
+  object-fit: contain;
+  border-radius: 20px;
+  position: relative;
+  top: -88px;
+  margin-top: -28px;
+  left: -20px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  z-index: 1;
+}
+
+.sidebar nav {
+  flex: 1;
+  display: flex;
+  position: relative;
+  z-index: 2;
+}
+
+.sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  height: 100%;
+}
+
+.sidebar nav ul li.menu-item-inferior {
+  margin-top: auto;
+}
+
+a {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-decoration: none;
+}
+.dashboard {
+  margin-left: -22px;
+  margin-top: -130px;
+}
+
+.estoque {
+  margin-left: -22px;
+  margin-top: -80px;
+  margin-bottom: 45px;
+}
+li {
+  margin-bottom: 15px; 
+}
+
+.menu-item-inferior {
+  margin-top: auto;
+  margin-left: -22px;
+  margin-bottom: 0;
+}
+
+.sidebar nav a {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  text-decoration: none;
+  color: #333;
+  border-radius: 8px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.menu-icone {
+  width: 50px;
+  height: 50px;
+}
+
+.link-texto {
+  font-size: 24px;
+  color: #000;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  font-weight: bold;
+
+}
+
+.link-texto2 {
+  font-weight: 400;
+  font-size: 22px; 
+  color: #000;
+  line-height: 1;
+  letter-spacing: 0.06em;
+}
+
+
+.main-content {
+  flex-grow: 1;
+  background-color: #E6E9F0;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content header h1 {
+  width: 667px;
+  height: 118px;
+  font-weight: 700;
+  font-size: 90px; 
+  line-height: 1;
+  letter-spacing: 0.2em;
+}
+
+.main-content header .user-icon {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 1rem; 
+  gap: 1rem; 
+}
+
+.search-bar {
+  width: 500px;
+  height: 40px;
+  border-radius: 15px; 
+  padding-left: 35px; 
+  padding-right: 15px;
+  border: 1px solid #CBD5E1;
+  outline: none;
+  font-size: 14px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: 10px center; 
+  background-size: 16px;
+}
+
+.actions {
+  display: flex;
+  gap: 0.8rem; 
+}
+
+.btn {
+  padding: 6px 12px; 
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px; 
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.btn.entrada,
+.btn.saida,
+.btn.filtrar {
+  height: 40px; 
+  border-radius: 15px; 
+  font-size: 14px; 
+}
+
+.btn img {
+  width: 20px; 
+  height: 20px; 
+  margin-right: 5px;
+}
+
+.btn span {
+  position: relative;
+  bottom: 3px; 
+}
+
+.btn.entrada,
+.btn.saida,
+.btn.filtrar {
+  justify-content: flex-start;
+}
+
+.table-wrapper {
+ background: linear-gradient(0deg, #FFFFFF, #FFFFFF);
+  border-radius: 30px; 
+  padding: 0.8rem;
+  flex-grow: 1;
+}
+
+.tabela-estoque {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+
+}
+
+.tabela-estoque thead th {
+  font-weight: 700;
+  font-size: 25px; 
+  color: #000; 
+  padding: 6px 8px;
+  vertical-align: middle;
+  text-align: left;
+  
+
+}
+
+.tabela-estoque tbody tr {
+  height: 40px; 
+  background: rgba(211, 225, 240, 0.1);
+  border-radius: 5px; 
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  font-family: 'Century Gothic';
+}
+button.action-btn img {
+  color: #000000;
+  width: 20px;
+  height: 20px;
+  pointer-events: none; 
+}
+.saida-btn {
+background: linear-gradient(0deg, #DC3545, #DC3545);
+   display: block; 
+}
+
+.entrada-btn {
+background: linear-gradient(0deg, #28A745, #28A745);
+display: block; 
+}
+
+.tabela-estoque tbody td {
+  font-family: 'Century Gothic';
+  font-weight: 400;
+  font-size: 25px;
+  text-align: left;
+  padding: 10px 12px;
+
+}
+
+.coluna-nome {
+  padding-left: 10px;
+}
+.actions-cell {
+display: flex;
+  justify-content: left; 
+  align-items: left; 
+  gap: 5px;     
+}
+
+.action-btn {
+  align-items: center;
+  width: 40px; 
+  height: 35px; 
+  border-radius: 10px; 
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-container.mostrar {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  background-color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 350px; 
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.fechar-modal {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 20px; 
+  cursor: pointer;
+  color: #888;
+}
+
+.form-group {
+  margin-bottom: 10px; 
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 3px; 
+  font-weight: bold;
+  color: #555;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 6px; 
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box; 
+  font-size: 12px; 
+}
+
+.btn-salvar {
+  width: 100%;
+  padding: 8px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px; 
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-salvar:hover {
+  background-color: #218838;
+}
+
+.paginacao-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 8px 0;
+  gap: 5px;
+}
+
+.btn-paginacao {
+  width: 30px; 
+  height: 30px; 
+  padding: 0; 
+  border: 1px solid #ccc;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-paginacao:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.exportar-modal {
+    max-width: 600px;
+    width: 90%;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+
+@media (max-width: 1280px) {
+
+  .sidebar { width: 320px; padding: 24px; }
+  .sidebar .logo { width: 320px; height: 320px; top: -72px; left: -14px; }
+
+
+  .menu-icone { width: 44px; height: 44px; }
+  .link-texto { font-size: 20px; }
+  .link-texto2 { font-size: 20px; }
+
+
+  .main-content { padding: 1.5rem; }
+  .main-content header h1 { font-size: 70px; width: auto; height: auto; }
+
+  .user-menu img { width: 36px; height: 36px; }
+  #user-name { font-size: 16px; }
+
+  .search-bar { width: 250px; height: 38px; }
+
+
+  .tabela-estoque thead th { font-size: 20px; padding: 8px 10px; }
+  .tabela-estoque tbody td { font-size: 20px; padding: 8px 10px; }
+  .menu-item-inferior { margin-left: -18px; }
+
+
+  .btn { font-size: 13px; padding: 6px 10px; }
+  .btn img { width: 18px; height: 18px; }
+
+
+  .modal { max-width: 420px; padding: 14px 18px; }
+}
+
+@media (max-width: 1080px) {
+
+  .sidebar { width: 260px; padding: 20px; }
+  .sidebar .logo { width: 260px; height: 260px; top: -60px; left: -10px; }
+
+
+  .menu-icone { width: 40px; height: 40px; }
+  .link-texto { font-size: 18px; }
+  .link-texto2 { font-size: 18px; }
+
+  .main-content { padding: 1rem; }
+  .main-content header h1 { font-size: 56px; width: auto; height: auto; }
+
+
+  .user-menu img { width: 32px; height: 32px; }
+  #user-name { font-size: 14px; }
+
+
+  .search-bar { width: 200px; height: 36px; padding-left: 34px; }
+
+
+  .tabela-estoque thead th { font-size: 18px; padding: 6px 8px; }
+  .tabela-estoque tbody td { font-size: 18px; padding: 8px 8px; }
+  .menu-item-inferior { margin-left: -14px; }
+
+  .btn { font-size: 12px; padding: 6px 8px; }
+  .btn img { width: 16px; height: 16px; }
+  .action-btn { width: 36px; height: 32px; }
+
+
+  .tabela-estoque tbody tr { height: auto; padding: 8px 0; }
+
+  .modal { max-width: 360px; padding: 12px 14px; }
+
+  .main-content header h1 { line-height: 1; letter-spacing: 0.04em; }
+}
+
+/* 1366 × 768 (HD) – reduzir só aqui (altura flexibilizada p/ viewport real) */
+@media screen and (min-width: 1360px) and (max-width: 1366px) and (min-height: 700px) and (max-height: 800px) {
+  .sidebar { width: 270px !important; padding: 18px !important; }
+  .sidebar .logo { width: 270px !important; height: 270px !important; top: -60px !important; left: -12px !important; }
+
+  .menu-icone { width: 40px !important; height: 40px !important; }
+  .link-texto { font-size: 18px !important; }
+  .link-texto2 { font-size: 17px !important; }
+
+  .main-content { padding: 1.2rem !important; }
+  .main-content header h1 { font-size: 64px !important; width: auto !important; height: auto !important; letter-spacing: 0.16em !important; }
+
+  .user-menu img { width: 34px !important; height: 34px !important; }
+  #user-name { font-size: 15px !important; }
+
+  .search-bar { width: 240px !important; height: 36px !important; }
+
+  .table-wrapper { padding: 0.6rem !important; }
+
+  .tabela-estoque thead th { font-size: 18px !important; padding: 6px 8px !important; }
+  .tabela-estoque tbody td { font-size: 18px !important; padding: 8px 8px !important; }
+  .tabela-estoque tbody tr { height: auto !important; }
+
+  .btn { font-size: 12px !important; padding: 6px 8px !important; }
+  .btn img { width: 16px !important; height: 16px !important; }
+  .action-btn { width: 34px !important; height: 30px !important; }
+}
+
+/* 1366 × 768 (HD) — diminuir tamanhos apenas aqui */
+@media screen and (min-width: 1360px) and (max-width: 1366px) and (orientation: landscape) {
+  /* Sidebar e logo menores */
+  .sidebar { width: 240px !important; padding: 16px !important; }
+  .sidebar .logo { width: 240px !important; height: 240px !important; top: -50px !important; left: -12px !important; }
+
+  /* Espaço entre logo e links + espaçamento uniforme dos itens */
+  .sidebar nav { margin-top: 48px !important; padding-top: 4px !important; }
+  .sidebar nav ul { gap: 12px !important; }
+  .sidebar nav ul li { margin: 0 !important; }
+  .dashboard, .estoque { margin-top: 0 !important; }
+  .sidebar nav a { padding: 0.6rem !important; }
+
+  /* Tamanhos dos ícones e textos do menu */
+  .menu-icone { width: 34px !important; height: 34px !important; }
+  .link-texto { font-size: 18px !important; }
+  .link-texto2 { font-size: 16px !important; }
+
+  /* Conteúdo principal mais compacto */
+  .main-content { padding: 1rem !important; }
+  .main-content header h1 { font-size: 56px !important; width: auto !important; height: auto !important; letter-spacing: 0.14em !important; }
+
+  .user-menu img { width: 32px !important; height: 32px !important; }
+  #user-name { font-size: 14px !important; }
+
+  .toolbar { gap: 0.6rem !important; }
+  .search-bar { width: 220px !important; height: 34px !important; }
+
+  .table-wrapper { padding: 0.5rem !important; }
+
+  .tabela-estoque thead th { font-size: 17px !important; padding: 6px 8px !important; }
+  .tabela-estoque tbody td { font-size: 16px !important; padding: 6px 8px !important; }
+  .tabela-estoque tbody tr { height: auto !important; }
+
+  .btn { font-size: 12px !important; padding: 6px 8px !important; }
+  .btn img { width: 16px !important; height: 16px !important; }
+  .btn.entrada, .btn.saida, .btn.filtrar { height: 34px !important; border-radius: 12px !important; }
+
+  .action-btn { width: 32px !important; height: 28px !important; }
+}
+
+
+/* 1366 × 768 (HD) — links alinhados e com espaço uniforme abaixo da logo */
+@media screen and (min-width: 1360px) and (max-width: 1366px) and (orientation: landscape) {
+  /* espaço abaixo da logo */
+  .sidebar nav { margin-top: 28px !important; padding-top: 0 !important; }
+
+  /* espaçamento entre itens (uniforme) */
+  .sidebar nav ul { gap: 10px !important; }
+  .sidebar nav ul li { margin: 0 !important; }
+
+  /* remove offsets especiais do primeiro/segundo link */
+  .dashboard, .estoque { margin-top: 0 !important; }
+
+  /* garante o item inferior no rodapé da lista */
+  .sidebar nav ul li.menu-item-inferior { margin-top: auto !important; }
+}
+
+/* 1366 × 768 (HD) — reduzir espaçamento e subir os links da sidebar */
+@media screen and (min-width: 1360px) and (max-width: 1366px) and (orientation: landscape) {
+  /* sobe o bloco de links e evita ocupar altura extra */
+  .sidebar nav { margin-top: 6px !important; padding-top: 0 !important; flex: initial !important; height: auto !important; }
+
+  /* links mais juntos e uniformes */
+  .sidebar nav ul { gap: 4px !important; }
+  .sidebar nav ul li { margin: 0 !important; }
+  .sidebar nav a { padding: 0.4rem 0.6rem !important; }
+
+  /* remove offsets que empurravam itens */
+  .dashboard, .estoque { margin-top: 0 !important; }
+  .estoque { margin-bottom: 0 !important; }
+
+  /* mantém só o item inferior no rodapé da lista (se houver espaço) */
+  .sidebar nav ul li.menu-item-inferior { margin-top: auto !important; }
+}
+@media screen and (min-width: 1360px) and (max-width: 1366px) and (orientation: landscape) {
+  .sidebar nav { margin-top: -48px !important; }
+}
+
+

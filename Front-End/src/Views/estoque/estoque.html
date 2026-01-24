@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estoque</title>
+    <link rel="stylesheet" href="estoque.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+<script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
+<script src="../../js/estoque.js" defer></script>
+</head>
+<body>
+   <div class="dashboard-container">
+ <aside class="sidebar">
+    <img src="../../imagens/procaj.png" alt="PROCA Logo" class="logo" />
+ <nav>
+  <ul>
+    <li>
+      <a href="../dashboard/dashboard.html" class="dashboard active">
+        <img src="../../imagens/icone-casa.png" alt="" class="menu-icone"/>
+        <span class="link-texto">Dashboard</span>
+      </a>
+    </li>
+    <li>
+      <a href="../estoque/estoque.html" class="estoque">
+        <img src="../../imagens/icone-caixa80.png" alt="" class="menu-icone"/>
+        <span class="link-texto">Estoque</span>
+      </a>
+    </li>
+     <li>
+      <a href="../historico/hitorico.html" class="estoque">
+        <img src="../../imagens/icone-hitorico.png" alt="" class="menu-icone"/>
+        <span class="link-texto">Histórico</span>
+      </a>
+    </li>
+      <li>
+      <a href="../patrimonio/patrimonio.html" class="estoque">
+        <img src="../../imagens/icone-patrimonio.png" alt="" class="menu-icone"/>
+        <span class="link-texto">Patrimônio</span>
+      </a>
+    </li>
+    <li id="menu-cadastrar" style="display:none;">
+      <a href="../Cadastro/cadastro.html" class="estoque">
+        <img src="../../imagens/admin.png" alt="" class="menu-icone"/>
+        <span class="link-texto">Admin</span>
+      </a>
+    </li>
+
+    <li class="menu-item-inferior">
+    </li>
+  </ul>
+</nav>
+</aside>
+        <main class="main-content">
+               <header class="header">
+    <h1><strong>Estoque</strong></h1>
+
+    <div class="user-menu">
+      <span id="user-name">Olá, Usuário</span>
+      <div class="dropdown" id="user-dropdown">
+        <button id="logout-btn">Sair</button>
+      </div>
+      <img src="../../imagens/icone-conta.png" alt="Usuário" id="user-icon">
+    </div>
+  </header>
+    
+            <div class="toolbar">
+  <div class="search-container">
+    <input type="text" placeholder="Pesquisar..." class="search-bar" id="filtro-pesquisa">
+  </div>
+  <div class="actions">
+    <button class="btn entrada" id="btn-abrir-modal">
+      <img src="../../imagens/icone-soma.png" alt="Cadastrar">
+      <span>Cadastrar Produto</span>
+    </button>
+
+    <button class="btn filtrar" id="btn-abrir-filtro">
+      <img src="../../imagens/icone-opçoes.png" alt="Filtrar">
+      <span>Filtrar</span>
+    </button>
+
+
+    <button class="btn filtrar" id="btn-exportar" title="Exportar produtos">
+      <span>Exportar</span>
+    </button>
+  </div>
+</div>
+
+<!-- Modal de Exportação -->
+<div id="modal-exportar-container" class="modal-container">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Exportar Produtos</h3>
+            <button id="fechar-exportar-modal" class="close-btn">&times;</button>
+        </div>
+        <form id="form-exportar" class="modal-form">
+            <div class="form-group">
+                <label for="categoria-export">Categoria</label>
+                <input type="text" id="categoria-export" placeholder="Ex: Eletrônicos, Móveis...">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="data-compra-inicio">Data de Cadastro - Início</label>
+                    <input type="date" id="data-compra-inicio">
+                </div>
+                <div class="form-group">
+                    <label for="data-compra-fim">Data de Cadastro - Fim</label>
+                    <input type="date" id="data-compra-fim">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quantidade-minima">Quantidade Mínima (opcional)</label>
+                    <input type="number" id="quantidade-minima" min="0" placeholder="Ex: 10">
+                </div>
+                <div class="form-group">
+                    <label for="quantidade-maxima">Quantidade Máxima (opcional)</label>
+                    <input type="number" id="quantidade-maxima" min="0" placeholder="Ex: 100">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" id="cancelar-exportar" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Baixar Planilha</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+            <section class="table-wrapper">
+                <table class="tabela-estoque">
+                    <thead>
+                        <tr>
+                            <th>Nome do Produto</th>
+                            <th>Quantidade</th>
+                            <th>Categoria</th>
+                            <th>Data de Cadastro</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela">
+                        </tbody>
+                </table>
+            </section>
+
+            <div class="paginacao-container">
+                <button id="btn-anterior" class="btn-paginacao">&lt;</button>
+                <button id="btn-proximo" class="btn-paginacao">&gt;</button>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-container" class="modal-container">
+    <div class="modal">
+        <button id="fechar-modal" class="fechar-modal">&times;</button>
+        <h2>Cadastrar Novo Produto</h2>
+        <form id="form-cadastro-produto">
+            <div class="form-group">
+                <label for="nome-produto">Nome do Produto</label>
+                <input type="text" id="nome-produto" required>
+            </div>
+            <div class="form-group">
+                <label for="descricao-produto">Descrição</label>
+                <textarea id="descricao-produto" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="quantidade-produto">Quantidade</label>
+                <input type="number" id="quantidade-produto" required>
+            </div>
+            <div class="form-group">
+                <label for="categoria-produto">Categoria</label>
+                <input type="text" id="categoria-produto" required>
+            </div>
+            <div class="form-group">
+                <label for="data-compra">Data de Compra</label>
+                <input type="date" id="data-compra">
+            </div>
+            <div class="form-group">
+                <label for="data-criacao">Data de Cadastro</label>
+                <input type="text" id="data-criacao" readonly>
+            </div>
+            <button type="submit" class="btn-salvar">Salvar Produto</button>
+        </form>
+    </div>
+</div>
+    
+    <div id="modal-filtro-container" class="modal-container">
+        <div class="modal">
+            <button id="fechar-filtro-modal" class="fechar-modal">&times;</button>
+            <h2>Opções de Filtro</h2>
+            <form id="form-filtro">
+                <div class="form-group"><label for="filtro-data">Filtrar por Data de Criação</label><input type="date" id="filtro-data"></div>
+                <div class="form-group"><label for="filtro-categoria">Filtrar por Categoria</label><input type="text" id="filtro-categoria" placeholder="Digite uma categoria..."></div>
+                <div class="form-group"><label for="filtro-quantidade">Ordenar por Quantidade</label><select id="filtro-quantidade"><option value="">Sem ordenação</option><option value="maior">Maior Quantidade</option><option value="menor">Menor Quantidade</option></select></div>
+                <div class="filtro-actions">
+                    <button type="button" id="btn-limpar-filtro" class="btn-limpar">Limpar Filtros</button>
+                    <button type="submit" class="btn-salvar">Aplicar Filtro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="modal-descricao-container" class="modal-container">
+    <div class="modal">
+        <button id="fechar-modal-descricao" class="fechar-modal">&times;</button>
+        <h2>Descrição do Produto</h2>
+        <div id="conteudo-descricao"></div>
+    </div>
+</div>
+
+
+<div id="modal-saida-container" class="modal-container">
+    <div class="modal">
+        <button id="fechar-modal-saida" class="fechar-modal">&times;</button>
+        <h2>Saída de Produto</h2>
+        <form id="form-saida-produto">
+            <p>Produto: <span id="saida-nome-produto"></span></p>
+            <p>Quantidade disponível: <span id="saida-quantidade-disponivel"></span></p>
+            <div class="form-group">
+                <label for="quantidade-saida">Quantidade a sair</label>
+                <input type="number" id="quantidade-saida" min="1" required>
+            </div>
+            <button type="submit" class="btn-salvar">Registrar Saída</button>
+        </form>
+    </div>
+</div>
+
+<div id="modal-entrada-container" class="modal-container">
+    <div class="modal">
+        <button id="fechar-modal-entrada" class="fechar-modal"></button>
+        <h2>Entrada de Produto</h2>
+        <form id="form-entrada-produto">
+            <p>Produto: <span id="entrada-nome-produto"></span></p>
+            <p>Quantidade atual: <span id="entrada-quantidade-atual"></span></p>
+            <div class="form-group">
+                <label for="quantidade-entrada">Quantidade a adicionar</label>
+                <input type="number" id="quantidade-entrada" min="1" required>
+            </div>
+            <button type="submit" class="btn-salvar">Registrar Entrada</button>
+        </form>
+    </div>
+</div>
+
+<div id="modal-editar-container" class="modal-container">
+  <div class="modal">
+    <button id="fechar-modal-editar" class="fechar-modal">&times;</button>
+    <h2>Editar Produto</h2>
+
+    <form id="form-editar-produto">
+      <div class="form-group">
+        <label for="editar-nome-produto">Nome do Produto</label>
+        <input id="editar-nome-produto" type="text" required />
+      </div>
+
+      <div class="form-group">
+        <label for="editar-descricao-produto">Descrição</label>
+        <textarea id="editar-descricao-produto" rows="3"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="editar-categoria-produto">Categoria</label>
+        <input id="editar-categoria-produto" type="text" />
+      </div>
+
+      <div class="form-group">
+        <label for="editar-quantidade-produto">Quantidade</label>
+        <input id="editar-quantidade-produto" type="number" min="0" step="1" required />
+      </div>
+
+      <div class="form-group">
+        <label for="editar-data-compra">Data de Compra</label>
+        <input id="editar-data-compra" type="date" />
+      </div>
+
+      <div class="filtro-actions">
+        <button type="button" id="cancelar-editar" class="btn-secondary">Cancelar</button>
+        <button type="submit" class="btn-salvar">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+</body>
+</html>

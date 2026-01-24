@@ -1,0 +1,59 @@
+{
+  "name": "projeto-ns",
+  "version": "1.0.2",
+  "description": "Aplicação desktop com Electron, integrando Front-End e Back-End.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix Front-End\"",
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "build:front": "npm run build --prefix Front-End"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.10.0",
+    "@electron-forge/maker-deb": "^7.10.0",
+    "@electron-forge/maker-rpm": "^7.10.0",
+    "@electron-forge/maker-squirrel": "^7.10.0",
+    "@electron-forge/maker-zip": "^7.10.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.10.0",
+    "@electron-forge/plugin-fuses": "^7.10.0",
+    "@electron/fuses": "^1.8.0",
+    "concurrently": "^9.2.0",
+    "electron": "^38.2.2",
+    "electron-builder": "^26.4.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "bcryptjs": "^3.0.3",
+    "electron-squirrel-startup": "^1.0.1",
+    "izitoast": "^1.4.0",
+    "multer": "^2.0.2"
+  },
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "icon": "icons/procaj.ico"
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "projeto_ns",
+            "authors": "Empresa Junior Next Step",
+            "description": "Um programa de controle de estoque e Patrimonio"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip"
+        },
+        {
+          "name": "@electron-forge/maker-deb"
+        },
+        {
+          "name": "@electron-forge/maker-rpm"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PROCA - Login</title>
+  <link rel="stylesheet" href="login-cadastro.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+<script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      
+    
+      <div class="card-left">
+        <img src="../../imagens/procaj.png" alt="PROCA Logo" class="logo" />
+        <div class="toggle-section">
+          <h3 class="highlighted-login" id="cardLeftHeading">
+            <strong><span class="special-Text">Novo</span> Login</strong>
+          </h3>
+          <button id="toggleButton" class="toggle-button" title="Alternar formulário">
+            <img class="seta" src="../../imagens/setas.png" alt="" />
+          </button>
+        </div>
+        <div class="welcome-text">
+          <h1 class="main-welcome">BEM-VINDO</h1>
+          <p class="sub-welcome">Ao gerenciamento de estoque do PROCAJ.</p>
+        </div>
+      </div>
+      
+        <div class="card-right">
+        <div id="loginSection">
+          <button class="login-tab">Logar</button>
+          <h2 id="currentFormTitle">FAÇA LOGIN</h2>
+          <div id="loginMessage" class="login-message" style="display:none;"></div>
+
+          <form id="loginForm">
+              <div class="input-group">
+                 <img src="../../imagens/ícone usuário.png" alt="Ícone de Usuário" class="icon input-icon" />
+  <div class="input-wrapper">
+    <span class="input-line"></span>
+    <input type="text" id="usernameLogin" placeholder="USUÁRIO" required />
+  </div>
+</div>
+
+<div class="input-group password-group">
+  <img src="../../imagens/ícone senha.png" alt="Ícone de Senha" class="icon input-icon2" />
+  <div class="input-wrapper">
+    <span class="input-line"></span>
+    <input type="password" id="passwordLogin" placeholder="*********" required />
+    <button type="button" id="togglePassword" class="toggle-password">
+      <img src="../../imagens/ícone do olho com corte.png" alt="Mostrar senha" id="eyeIcon" />
+    </button>
+  </div>
+</div>
+       
+            <div id="loginMessage" class="login-message"></div>
+
+        
+            <div class="options">
+              <label class="remember-me">
+                <input type="checkbox" id="rememberMeLogin" /> Lembrar
+              </label>
+            </div>
+            
+        
+            <button type="submit" class="enter-button">Entrar</button>
+          </form>
+        </div>
+
+      
+        <div class="social-icons">
+          <a href="#" aria-label="WhatsApp"><img src="../../imagens/whatsapp.png" alt="WhatsApp" /></a>
+          <a href="#" aria-label="Facebook"><img src="../../imagens/facebook.png" alt="Facebook" /></a>
+          <a href="#" aria-label="Instagram"><img src="../../imagens/instagram.png" alt="Instagram" /></a>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+  <script defer src="../../js/login.js"></script>
+</body>
+</html>
