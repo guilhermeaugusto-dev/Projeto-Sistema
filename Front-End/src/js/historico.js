@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function carregarHistorico() {
         try {
-            const base = 'http://localhost:3001/api/stock';
+            const base = 'http://26.117.112.62:3001/api/stock';
             const token = window.api ? window.api.getToken() : localStorage.getItem('token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
             const fetchFirstOkJson = async (urls) => {
@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Parâmetros enviados:', Object.fromEntries(params));
 
             const token = window.api ? window.api.getToken() : localStorage.getItem('token');
-            const url = `http://localhost:3001/api/export/historico?${params.toString()}`;
+            const url = `http://26.117.112.62:3001/api/export/historico?${params.toString()}`;
             
             console.log('URL de exportação:', url);
 

@@ -55,9 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
     async function carregarHistorico() {
         try {
             const [resProdutos, resSaidas, resEntradas] = await Promise.all([
-                fetch('http://localhost:3001/api/stock').then(r => r.json()),
-                fetch("http://localhost:3001/api/stock/output").then(r => r.json()),
-                fetch("http://localhost:3001/api/stock/input").then(r => r.json())
+                fetch('http://26.117.112.62:3001/api/stock').then(r => r.json()),
+                fetch("http://26.117.112.62:3001/api/stock/output").then(r => r.json()),
+                fetch("http://26.117.112.62:3001/api/stock/input").then(r => r.json())
             ]);
 
             // Criar mapa de produtos para buscar preços
@@ -395,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Parâmetros enviados:', Object.fromEntries(params));
 
             const token = window.api ? window.api.getToken() : localStorage.getItem('token');
-            const url = `http://localhost:3001/api/export/historico?${params.toString()}`;
+            const url = `http://26.117.112.62:3001/api/export/historico?${params.toString()}`;
             
             console.log('URL de exportação:', url);
 

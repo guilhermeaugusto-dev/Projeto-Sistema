@@ -206,13 +206,47 @@ export const updateNotaFiscal = async (req, res) => {
 // FUNÇÃO PARA LISTAR O PATRIMONIO
 export const getAllProperty = async (req, res) => {
   try {
-    const patrimonios = await prisma.patrimonio.findMany();
+    const patrimonios = await prisma.$queryRaw`
+      SELECT
+        "numeroTombo",
+        "nome",
+        "local",
+        "responsavel",
+        "estado",
+        "preco",
+        "numeroNotaFiscal",
+        ("imagem" IS NOT NULL) AS "temImagem"
+      FROM "Patrimonio"
+      ORDER BY "numeroTombo" ASC
+    `;
+
     res.status(200).json(patrimonios);
+
   } catch (error) {
+    console.error('Erro em getAllProperty:', error);
     res.status(500).json({ error: error.message });
   }
 };
 
+export const getImageProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const patrimonio = await prisma.patrimonio.findUnique({
+      where: { numeroTombo: Number(id) },
+      select: { imagem: true }
+    });
+
+    if (!patrimonio || !patrimonio.imagem) {
+      return res.status(404).json({ error: "Imagem não encontrada" });
+    }
+
+    res.setHeader("Content-Type", "image/jpeg");
+    res.send(patrimonio.imagem);
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 export const deletePatrimonio = async (req, res) => {
   const { id } = req.params; // numeroTombo
   const numero = parseInt(id, 10);

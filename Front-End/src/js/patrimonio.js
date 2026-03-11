@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let todosOsPatrimonios = [];
     let patrimoniosExibidos = [];
     let paginaAtual = 1;
-    const ITENS_POR_PAGINA = 10;
+    const ITENS_POR_PAGINA = 5;
 
     const corpoTabela = document.getElementById('corpo-tabela');
     const filtroInput = document.getElementById('filtro-pesquisa');
@@ -119,20 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       patrimoniosDaPagina.forEach(p => {
         let imagemHtml = 'Sem Imagem';
-        let bytesDaImagem = null;
-
-        if (p.imagem) {
-          if (Array.isArray(p.imagem.data)) {
-            bytesDaImagem = p.imagem.data;
-          } else if (typeof p.imagem === 'object' && !p.imagem.data) {
-            bytesDaImagem = Object.values(p.imagem);
-          }
-        }
-
-        if (bytesDaImagem) {
-          const blob = new Blob([new Uint8Array(bytesDaImagem)], { type: 'image/jpeg' });
-          const imageUrl = URL.createObjectURL(blob);
-          imagemHtml = `<a href="${imageUrl}" target="_blank" rel="noopener noreferrer" class="ver-imagem-link">Ver Imagem</a>`;
+        if (p.temImagem) {
+          imagemHtml = `<a href="#" class="ver-imagem-link" data-id="${p.numeroTombo}">Ver Imagem</a>`;
         }
 
         const novaLinha = document.createElement('tr');
@@ -175,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function carregarPatrimonios() {
       try {
-        const response = await fetch("http://localhost:3001/api/property", {
+        const response = await fetch("http://26.117.112.62:3001/api/property", {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (!response.ok) throw new Error('Erro ao buscar os patrimônios');
@@ -253,6 +241,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Ações da tabela (transferir, editar, detalhes, deletar)
     corpoTabela.addEventListener('click', async (e) => {
+      const verImagemLink = e.target.closest('.ver-imagem-link');
+      if (verImagemLink) {
+        e.preventDefault();
+        const patrimonioId = verImagemLink.dataset.id;
+        if (!patrimonioId) return;
+
+        try {
+          const resp = await fetch(`http://26.117.112.62:3001/api/property/patrimonio/${patrimonioId}/imagem`, {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          if (!resp.ok) throw new Error('Erro ao buscar imagem');
+
+          const blob = await resp.blob();
+          const imageUrl = URL.createObjectURL(blob);
+          window.open(imageUrl, '_blank', 'noopener');
+          setTimeout(() => URL.revokeObjectURL(imageUrl), 60000);
+        } catch (error) {
+          console.error(error);
+          window.iziToast?.error({ title: 'Erro', message: error.message || 'Erro ao buscar imagem' });
+        }
+        return;
+      }
+
       const btn = e.target.closest('button.action-btn');
       if (!btn) return;
 
@@ -300,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!patrimonio) return;
 
         try {
-          const resp = await fetch(`http://localhost:3001/api/transfer/${patrimonioId}`, {
+          const resp = await fetch(`http://26.117.112.62:3001/api/transfer/${patrimonioId}`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           if (!resp.ok) throw new Error('Erro ao buscar movimentações');
@@ -330,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Deletar
       if (btn.classList.contains('deletar-btn')) {
         try {
-          const respMovimentacoes = await fetch(`http://localhost:3001/api/transfer/${patrimonioId}`, {
+          const respMovimentacoes = await fetch(`http://26.117.112.62:3001/api/transfer/${patrimonioId}`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           
@@ -354,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           try {
             btn.disabled = true;
-            const resp = await fetch(`http://localhost:3001/api/property/${patrimonioId}`, {
+            const resp = await fetch(`http://26.117.112.62:3001/api/property/${patrimonioId}`, {
               method: 'DELETE',
               headers: { "Authorization": `Bearer ${token}` }
             });
@@ -407,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
         observacao: document.getElementById('observacao').value,
       };
       try {
-        const response = await fetch(`http://localhost:3001/api/transfer/${patrimonioId}`, {
+        const response = await fetch(`http://26.117.112.62:3001/api/transfer/${patrimonioId}`, {
           method: 'PUT',
           headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
           body: JSON.stringify(dados)
@@ -429,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btnSubmit.textContent = 'Enviando...';
       const formData = new FormData(formCadastro);
       try {
-        const response = await fetch('http://localhost:3001/api/property', {
+        const response = await fetch('http://26.117.112.62:3001/api/property', {
           method: 'POST',
           headers: { "Authorization": `Bearer ${token}` },
           body: formData
@@ -480,7 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
           btnSubmit.textContent = 'Salvando...';
         }
 
-        const response = await fetch(`http://localhost:3001/api/property/${idAtual}`, {
+        const response = await fetch(`http://26.117.112.62:3001/api/property/${idAtual}`, {
           method: 'PUT',
           headers: { 
             "Authorization": `Bearer ${token}`
@@ -585,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dataInicio) params.append('dataInicio', dataInicio);
             if (dataFim) params.append('dataFim', dataFim);
 
-            const url = `http://localhost:3001/api/export/patrimonio?${params.toString()}`;
+            const url = `http://26.117.112.62:3001/api/export/patrimonio?${params.toString()}`;
 
             const response = await fetch(url, {
                 method: 'GET',

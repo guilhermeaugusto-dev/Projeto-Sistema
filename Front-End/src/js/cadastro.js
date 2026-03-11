@@ -37,7 +37,7 @@ togglePassword.addEventListener('click', () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/api/user/register", {
+      const response = await fetch("http://26.117.112.62:3001/api/user/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

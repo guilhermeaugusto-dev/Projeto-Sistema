@@ -326,7 +326,7 @@ function initEstoque(token) {
 
              if (confirmar) {
                try {
-                 const response = await fetch(`http://localhost:3001/api/stock/adicionar`, {
+                 const response = await fetch(`http://26.117.112.62:3001/api/stock/adicionar`, {
                    method: "POST",
                    headers: {
                      "Content-Type": "application/json",
@@ -376,7 +376,7 @@ function initEstoque(token) {
         };
         
         try {
-          const response = await fetch("http://localhost:3001/api/stock", {
+          const response = await fetch("http://26.117.112.62:3001/api/stock", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -469,7 +469,7 @@ function initEstoque(token) {
         }
 
         try {
-          const response = await fetch(`http://localhost:3001/api/stock/output/${produtoSelecionado.id}`, {
+          const response = await fetch(`http://26.117.112.62:3001/api/stock/output/${produtoSelecionado.id}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -497,7 +497,7 @@ function initEstoque(token) {
         }
 
         try {
-          const response = await fetch(`http://localhost:3001/api/stock/adicionar`, {
+          const response = await fetch(`http://26.117.112.62:3001/api/stock/adicionar`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -614,7 +614,7 @@ async function exportarDadosPersonalizados() {
     if (qmax !== '') qs.append('quantidadeMaxima', qmax);
 
     const token = window.api.getToken();
-    const url = `http://localhost:3001/api/export/database?${qs.toString()}`;
+    const url = `http://26.117.112.62:3001/api/export/database?${qs.toString()}`;
     const resp = await fetch(url, {
       method: 'GET',
       headers: {
