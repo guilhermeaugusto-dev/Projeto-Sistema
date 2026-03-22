@@ -73,6 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const formFiltro = document.getElementById('form-filtro');
     const btnLimparFiltro = document.getElementById('btn-limpar-filtro');
     const filtroEstado = document.getElementById('filtro-estado');
+    const filtroDataInicio = document.getElementById('filtro-data-inicio');
+    const filtroDataFim = document.getElementById('filtro-data-fim');
 
     // --- Modal Transferir ---
     const modalTransferir = document.getElementById('modal-transferir-container');
@@ -94,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputEditarNome = document.getElementById('editar-nome-patrimonio');
     const inputEditarLocal = document.getElementById('editar-local-patrimonio');
     const inputEditarResponsavel = document.getElementById('editar-responsavel-patrimonio');
+    const inputEditarDataAquisicao = document.getElementById('editar-data-aquisicao-patrimonio');
     const selectEditarEstado = document.getElementById('editar-estado-patrimonio');
     const inputEditarImagem = document.getElementById('editar-imagem-patrimonio');
     const inputEditarPreco = document.getElementById('editar-preco');
@@ -113,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const patrimoniosDaPagina = patrimoniosExibidos.slice(inicio, fim);
 
       if (patrimoniosDaPagina.length === 0) {
-        corpoTabela.innerHTML = `<tr><td colspan="8" style="text-align:center;">Nenhum patrimônio encontrado.</td></tr>`;
+        corpoTabela.innerHTML = `<tr><td colspan="9" style="text-align:center;">Nenhum patrimônio encontrado.</td></tr>`;
         return;
       }
 
@@ -123,12 +126,17 @@ document.addEventListener('DOMContentLoaded', () => {
           imagemHtml = `<a href="#" class="ver-imagem-link" data-id="${p.numeroTombo}">Ver Imagem</a>`;
         }
 
+        const dataAquisicao = p.dataAquisicao
+          ? new Date(p.dataAquisicao).toLocaleDateString('pt-BR')
+          : '-';
+
         const novaLinha = document.createElement('tr');
         novaLinha.innerHTML = `
           <td>${String(p.numeroTombo).padStart(5,'0')}</td>
           <td>${p.nome}</td>
           <td>${p.local}</td>
           <td>${p.responsavel}</td>
+          <td>${dataAquisicao}</td>
           <td>${p.estado}</td>
           <td>${p.preco}</td>
           <td>${p.numeroNotaFiscal || 'Não informado'}</td>
@@ -163,12 +171,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function carregarPatrimonios() {
       try {
-        const response = await fetch("http://26.117.112.62:3001/api/property", {
+        const response = await fetch("http://localhost:3001/api/property", {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (!response.ok) throw new Error('Erro ao buscar os patrimônios');
         todosOsPatrimonios = await response.json();
         patrimoniosExibidos = [...todosOsPatrimonios];
+        console.log('Patrimônios carregados:', todosOsPatrimonios);
         renderizarTabela();
       } catch (error) {
         console.error(error);
@@ -179,12 +188,37 @@ document.addEventListener('DOMContentLoaded', () => {
     function aplicarFiltros() {
       const termoBusca = filtroInput.value.toLowerCase();
       const estadoSelecionado = filtroEstado.value;
+      const dataInicio = filtroDataInicio?.value || '';
+      const dataFim = filtroDataFim?.value || '';
+
+      const startOfDay = (ymd) => {
+        if (!ymd) return null;
+        const [y, m, d] = ymd.split('-').map(Number);
+        return new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);
+      };
+      const endOfDay = (ymd) => {
+        if (!ymd) return null;
+        const [y, m, d] = ymd.split('-').map(Number);
+        return new Date(y, (m || 1) - 1, d || 1, 23, 59, 59, 999);
+      };
+
+      const di = startOfDay(dataInicio);
+      const df = endOfDay(dataFim);
 
       patrimoniosExibidos = todosOsPatrimonios.filter(p => {
         const nomeValido = p.nome.toLowerCase().includes(termoBusca);
         const numeroTomboValido = String(p.numeroTombo).includes(termoBusca);
         const estadoValido = estadoSelecionado ? p.estado === estadoSelecionado : true;
-        return (nomeValido || numeroTomboValido) && estadoValido;
+        const dataBase = p.dataAquisicao || p.createdAt;
+        const dataValida = (() => {
+          if (!di && !df) return true;
+          if (!dataBase) return false;
+          const data = new Date(dataBase);
+          if (di && data < di) return false;
+          if (df && data > df) return false;
+          return true;
+        })();
+        return (nomeValido || numeroTomboValido) && estadoValido && dataValida;
       });
 
       paginaAtual = 1;
@@ -248,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!patrimonioId) return;
 
         try {
-          const resp = await fetch(`http://26.117.112.62:3001/api/property/patrimonio/${patrimonioId}/imagem`, {
+          const resp = await fetch(`http://localhost:3001/api/property/patrimonio/${patrimonioId}/imagem`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           if (!resp.ok) throw new Error('Erro ao buscar imagem');
@@ -291,6 +325,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inputEditarNome) inputEditarNome.value = patrimonio.nome || '';
         if (inputEditarLocal) inputEditarLocal.value = patrimonio.local || '';
         if (inputEditarResponsavel) inputEditarResponsavel.value = patrimonio.responsavel || '';
+        if (inputEditarDataAquisicao) {
+          if (patrimonio.dataAquisicao) {
+            const dataLocal = new Date(patrimonio.dataAquisicao);
+            inputEditarDataAquisicao.value = dataLocal.toISOString().split('T')[0];
+          } else {
+            inputEditarDataAquisicao.value = '';
+          }
+        }
         if (selectEditarEstado) selectEditarEstado.value = patrimonio.estado || '';
         if (inputEditarPreco) {
           if (patrimonio.preco !== null && patrimonio.preco !== undefined) {
@@ -311,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!patrimonio) return;
 
         try {
-          const resp = await fetch(`http://26.117.112.62:3001/api/transfer/${patrimonioId}`, {
+          const resp = await fetch(`http://localhost:3001/api/transfer/${patrimonioId}`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           if (!resp.ok) throw new Error('Erro ao buscar movimentações');
@@ -341,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Deletar
       if (btn.classList.contains('deletar-btn')) {
         try {
-          const respMovimentacoes = await fetch(`http://26.117.112.62:3001/api/transfer/${patrimonioId}`, {
+          const respMovimentacoes = await fetch(`http://localhost:3001/api/transfer/${patrimonioId}`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           
@@ -365,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           try {
             btn.disabled = true;
-            const resp = await fetch(`http://26.117.112.62:3001/api/property/${patrimonioId}`, {
+            const resp = await fetch(`http://localhost:3001/api/property/${patrimonioId}`, {
               method: 'DELETE',
               headers: { "Authorization": `Bearer ${token}` }
             });
@@ -418,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
         observacao: document.getElementById('observacao').value,
       };
       try {
-        const response = await fetch(`http://26.117.112.62:3001/api/transfer/${patrimonioId}`, {
+        const response = await fetch(`http://localhost:3001/api/transfer/${patrimonioId}`, {
           method: 'PUT',
           headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
           body: JSON.stringify(dados)
@@ -440,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btnSubmit.textContent = 'Enviando...';
       const formData = new FormData(formCadastro);
       try {
-        const response = await fetch('http://26.117.112.62:3001/api/property', {
+        const response = await fetch('http://localhost:3001/api/property', {
           method: 'POST',
           headers: { "Authorization": `Bearer ${token}` },
           body: formData
@@ -479,6 +521,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inputEditarNome) formData.append('nome', inputEditarNome.value || '');
         if (inputEditarLocal) formData.append('local', inputEditarLocal.value || '');
         if (inputEditarResponsavel) formData.append('responsavel', inputEditarResponsavel.value || '');
+        if (inputEditarDataAquisicao && inputEditarDataAquisicao.value) {
+          formData.append('dataAquisicao', inputEditarDataAquisicao.value);
+        }
         if (selectEditarEstado) formData.append('estado', selectEditarEstado.value || '');
         if (inputEditarPreco) formData.append('preco', inputEditarPreco.value || '');
 
@@ -491,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
           btnSubmit.textContent = 'Salvando...';
         }
 
-        const response = await fetch(`http://26.117.112.62:3001/api/property/${idAtual}`, {
+        const response = await fetch(`http://localhost:3001/api/property/${idAtual}`, {
           method: 'PUT',
           headers: { 
             "Authorization": `Bearer ${token}`
@@ -596,7 +641,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dataInicio) params.append('dataInicio', dataInicio);
             if (dataFim) params.append('dataFim', dataFim);
 
-            const url = `http://26.117.112.62:3001/api/export/patrimonio?${params.toString()}`;
+            const url = `http://localhost:3001/api/export/patrimonio?${params.toString()}`;
 
             const response = await fetch(url, {
                 method: 'GET',

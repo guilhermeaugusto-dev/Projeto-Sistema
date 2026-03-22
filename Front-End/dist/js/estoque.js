@@ -86,6 +86,18 @@ function initEstoque(token) {
     const entradaQuantidadeAtual = document.getElementById('entrada-quantidade-atual');
     const quantidadeEntradaInput = document.getElementById('quantidade-entrada');
 
+    // Elementos do modal de edição
+    const modalEditarContainer   = document.getElementById('modal-editar-container');
+    const btnFecharEditar        = document.getElementById('fechar-modal-editar');
+    const formEditar             = document.getElementById('form-editar-produto');
+    const editarNomeInput        = document.getElementById('editar-nome-produto');
+    const editarDescricaoInput   = document.getElementById('editar-descricao-produto');
+    const editarCategoriaInput   = document.getElementById('editar-categoria-produto');
+    const editarDataCompraInput  = document.getElementById('editar-data-compra');
+    const editarQuantidadeInput  = document.getElementById('editar-quantidade-produto');
+    const btnCancelarEditar      = document.getElementById('cancelar-editar'); // <- novo
+    const btnSalvarEditar        = formEditar ? formEditar.querySelector('button[type="submit"]') : null; // <- novo
+
     const btnExportar = document.getElementById('btn-exportar');
     const modalExportarContainer = document.getElementById('modal-exportar-container');
     const btnFecharExportar = document.getElementById('fechar-exportar-modal');
@@ -96,7 +108,9 @@ function initEstoque(token) {
         !btnAnterior || !btnProximo || !btnAbrirFiltro || !modalFiltroContainer || !btnFecharFiltroModal ||
         !formFiltro || !btnLimparFiltro || !modalDescricaoContainer || !btnFecharDescricao || !conteudoDescricao ||
         !modalSaidaContainer || !btnFecharSaida || !formSaida || !saidaNomeProduto || !saidaQuantidadeDisponivel || !quantidadeSaidaInput ||
-        !modalEntradaContainer || !btnFecharEntrada || !formEntrada || !entradaNomeProduto || !entradaQuantidadeAtual || !quantidadeEntradaInput) {
+        !modalEntradaContainer || !btnFecharEntrada || !formEntrada || !entradaNomeProduto || !entradaQuantidadeAtual || !quantidadeEntradaInput ||
+        !btnExportar || !modalExportarContainer || !btnFecharExportar || !btnCancelarExportar || !formExportar ||
+        !modalEditarContainer || !btnFecharEditar || !formEditar || !editarNomeInput || !editarDescricaoInput || !editarCategoriaInput || !editarDataCompraInput || !editarQuantidadeInput) {
         console.error("Erro crítico: Um ou mais elementos essenciais não foram encontrados no HTML.");
         return;
     }
@@ -144,7 +158,7 @@ function initEstoque(token) {
       return `${y}-${m}-${day}`;
     }
 
-    // NOVO: helpers para início/fim do dia em horário local
+  
     function startOfDayLocal(ymd) {
       if (!ymd) return null;
       const [y, m, d] = ymd.split('-').map(Number);
@@ -161,29 +175,26 @@ function initEstoque(token) {
         const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
         const fim = inicio + ITENS_POR_PAGINA;
 
-        // Se quiser ver também os com quantidade 0, remova o filter abaixo
         const produtosValidos = produtosExibidos.filter(p => p.quantidade > 0);
         const produtosDaPagina = produtosValidos.slice(inicio, fim);
 
         if (produtosDaPagina.length === 0 && paginaAtual === 1) {
-            corpoTabela.innerHTML = `<tr><td colspan="8" style="text-align:center;">Nenhum produto encontrado.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="5" style="text-align:center;">Nenhum produto encontrado.</td></tr>`;
         } else {
             produtosDaPagina.forEach(produto => {
                 const novaLinha = document.createElement('tr');
-                const precoFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco);
 
-                // Mostra Data de CADASTRO
                 const dataCadastroFormatada = produto.createdAt
                   ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(produto.createdAt))
                   : '';
                 novaLinha.innerHTML = `
                     <td class="coluna-nome">${produto.nome}</td>
-                    <td class="coluna-preco">${precoFormatado}</td>
                     <td class="coluna-quantidade">${produto.quantidade}</td>
                     <td class="coluna-categoria">${produto.categoria}</td>
                     <td>${dataCadastroFormatada}</td>
                     <td class="actions-cell">
                       <button class="action-btn descricao-btn" data-id="${produto.id}"><img src="../../imagens/icone-detalhes.png" alt="Detalhes"></button>
+                      <button class="action-btn editar-btn" data-id="${produto.id}"><img src="../../imagens/editar.png" alt="Editar"></button>
                       <button class="action-btn entrada-btn" data-id="${produto.id}"><img src="../../imagens/icone-soma.png" alt="Entrada"></button>
                       <button class="action-btn saida-btn" data-id="${produto.id}"><img src="../../imagens/icone-saida.png" alt="Saída"></button>
                     </td>
@@ -196,7 +207,7 @@ function initEstoque(token) {
 
     async function carregarProdutos() {
       try {
-        const response = await fetch("http://26.117.112.62:3001/api/stock", {
+        const response = await fetch("http://localhost:3001/api/stock", {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!response.ok) throw new Error("Erro ao buscar os produtos");
@@ -206,7 +217,7 @@ function initEstoque(token) {
             aplicarFiltros();
         } catch (error) {
             console.error('Erro ao buscar os produtos', error);
-            corpoTabela.innerHTML = `<tr><td colspan="8" style="text-align:center; color: red;">${error.message}</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="5" style="text-align:center; color: red;">${error.message}</td></tr>`;
         }
     }
 
@@ -219,17 +230,16 @@ function initEstoque(token) {
     function aplicarFiltros() {
         let produtosFiltrados = [...todosOsProdutos];
 
-        // Busca por nome
         const termoBusca = (filtroInput.value || '').toLowerCase();
         if (termoBusca) {
           produtosFiltrados = produtosFiltrados.filter(p => (p.nome || '').toLowerCase().includes(termoBusca));
         }
 
-        // DATAS (cadastro): início e fim
+    
         let inicioVal = document.getElementById('filtro-data-inicio')?.value || '';
         const fimVal   = document.getElementById('filtro-data-fim')?.value || '';
 
-        // Fallback para o campo antigo (se existir)
+    
         if (!inicioVal) {
           const unico = document.getElementById('filtro-data')?.value || '';
           if (unico) inicioVal = unico;
@@ -326,7 +336,7 @@ function initEstoque(token) {
 
              if (confirmar) {
                try {
-                 const response = await fetch(`http://26.117.112.62:3001/api/stock/adicionar`, {
+                 const response = await fetch(`http://localhost:3001/api/stock/adicionar`, {
                    method: "POST",
                    headers: {
                      "Content-Type": "application/json",
@@ -335,8 +345,7 @@ function initEstoque(token) {
                    body: JSON.stringify({
                      nome: nomeProduto,
                      descricao: document.getElementById("descricao-produto").value,
-                     quantidade: parseInt(document.getElementById("quantidade-produto").value),
-                     preco: parseFloat(document.getElementById("preco-produto").value),
+                     quantidade: parseInt(document.getElementById("quantidade-produto").value, 10),
                      categoria: document.getElementById("categoria-produto").value,
                      dataCompra: document.getElementById("data-compra").value
                    })
@@ -369,14 +378,13 @@ function initEstoque(token) {
         const produto = {
             nome: nomeProduto,
             descricao: document.getElementById("descricao-produto").value,
-            quantidade: parseInt(document.getElementById("quantidade-produto").value),
-            preco: parseFloat(document.getElementById("preco-produto").value),
+            quantidade: parseInt(document.getElementById("quantidade-produto").value, 10),
             categoria: document.getElementById("categoria-produto").value,
             dataCompra: document.getElementById("data-compra").value
         };
         
         try {
-          const response = await fetch("http://26.117.112.62:3001/api/stock", {
+          const response = await fetch("http://localhost:3001/api/stock", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -415,11 +423,24 @@ function initEstoque(token) {
                 <p><strong>Nome:</strong> ${produto.nome}</p>
                 <p><strong>Descrição:</strong> ${produto.descricao || 'Sem descrição'}</p>
                 <p><strong>Categoria:</strong> ${produto.categoria}</p>
-                <p><strong>Preço:</strong> ${produto.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                <!-- Linha de preço removida -->
                 <p><strong>Quantidade:</strong> ${produto.quantidade}</p>
                 <p><strong>Data de compra:</strong> ${dataCompraFormatada}</p>
             `;
             modalDescricaoContainer.classList.add('mostrar');
+        }
+
+        if (btn.classList.contains('editar-btn')) {
+            produtoSelecionado = produto;
+            if (editarNomeInput)       editarNomeInput.value = produto.nome || '';
+            if (editarDescricaoInput)  editarDescricaoInput.value = produto.descricao || '';
+            if (editarCategoriaInput)  editarCategoriaInput.value = produto.categoria || '';
+            if (editarDataCompraInput) editarDataCompraInput.value = produto.dataCompra
+                ? new Date(produto.dataCompra).toISOString().slice(0,10)
+                : '';
+            if (editarQuantidadeInput) editarQuantidadeInput.value = Number.isInteger(produto.quantidade) ? produto.quantidade : 0;
+            modalEditarContainer?.classList.add('mostrar');
+            return;
         }
 
         if (btn.classList.contains('entrada-btn')) {
@@ -459,6 +480,88 @@ function initEstoque(token) {
     btnFecharSaida.addEventListener('click', () => modalSaidaContainer.classList.remove('mostrar'));
     modalSaidaContainer.addEventListener('click', e => { if (e.target === modalSaidaContainer) modalSaidaContainer.classList.remove('mostrar'); });
 
+    // Fechamento do modal de edição (mesmo comportamento do filtro)
+    if (btnFecharEditar) {
+      btnFecharEditar.addEventListener('click', () => modalEditarContainer.classList.remove('mostrar'));
+    }
+    if (btnCancelarEditar) {
+      btnCancelarEditar.addEventListener('click', () => modalEditarContainer.classList.remove('mostrar'));
+    }
+    if (modalEditarContainer) {
+      modalEditarContainer.addEventListener('click', (e) => {
+        if (e.target === modalEditarContainer) modalEditarContainer.classList.remove('mostrar');
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (modalEditarContainer?.classList.contains('mostrar')) modalEditarContainer.classList.remove('mostrar');
+      if (modalFiltroContainer?.classList.contains('mostrar')) modalFiltroContainer.classList.remove('mostrar');
+      if (modalExportarContainer?.classList.contains('mostrar')) fecharModalExportar();
+    });
+
+
+
+    // Submit do formulário de edição
+    formEditar.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!produtoSelecionado) return;
+
+      const nome = (editarNomeInput?.value || '').trim();
+      const descricao = (editarDescricaoInput?.value || '').trim();
+      const categoria = (editarCategoriaInput?.value || '').trim();
+      const dataCompra = (editarDataCompraInput?.value || '').trim();
+      const qtdStr = (editarQuantidadeInput?.value ?? '').toString().trim();
+
+      const payload = { nome, descricao, categoria };
+      if (dataCompra) payload.dataCompra = dataCompra;
+
+      if (qtdStr !== '') {
+        const q = parseInt(qtdStr, 10);
+        if (!Number.isInteger(q) || q < 0) {
+          iziToast.error({ title: 'Erro', message: 'Quantidade inválida (use inteiro ≥ 0).', position: 'topRight' });
+          return;
+        }
+        payload.quantidade = q;
+      }
+
+      const btnSalvar = e.submitter || btnSalvarEditar; // <- novo
+
+      try {
+        if (btnSalvar) {
+          btnSalvar.disabled = true;
+          btnSalvar.dataset.oldText = btnSalvar.textContent;
+          btnSalvar.textContent = 'Salvando...';
+        }
+
+        const resp = await fetch(`http://localhost:3001/api/stock/${produtoSelecionado.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!resp.ok) {
+          const txt = await resp.text();
+          let msg = 'Erro ao atualizar produto';
+          try { msg = JSON.parse(txt).error || JSON.parse(txt).message || msg; } catch {}
+          throw new Error(msg);
+        }
+
+        iziToast.success({ title: 'Sucesso', message: 'Produto atualizado!', position: 'topRight' });
+        modalEditarContainer.classList.remove('mostrar');
+        await carregarProdutos();
+      } catch (error) {
+        iziToast.error({ title: 'Erro', message: error.message || 'Falha na atualização', position: 'topRight' });
+      } finally {
+        if (btnSalvar) {
+          btnSalvar.disabled = false;
+          btnSalvar.textContent = btnSalvar.dataset.oldText || 'Salvar';
+        }
+      }
+    });
+
     formSaida.addEventListener('submit', async (e) => {
         e.preventDefault();
         const quantidade = parseInt(quantidadeSaidaInput.value);
@@ -469,7 +572,7 @@ function initEstoque(token) {
         }
 
         try {
-          const response = await fetch(`http://26.117.112.62:3001/api/stock/output/${produtoSelecionado.id}`, {
+          const response = await fetch(`http://localhost:3001/api/stock/output/${produtoSelecionado.id}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -497,7 +600,7 @@ function initEstoque(token) {
         }
 
         try {
-          const response = await fetch(`http://26.117.112.62:3001/api/stock/adicionar`, {
+          const response = await fetch(`http://localhost:3001/api/stock/adicionar`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -507,7 +610,6 @@ function initEstoque(token) {
                     nome: produtoSelecionado.nome,
                     quantidade: quantidade,
                     descricao: produtoSelecionado.descricao,
-                    preco: produtoSelecionado.preco,
                     categoria: produtoSelecionado.categoria,
                     dataCompra: produtoSelecionado.dataCompra
                 })
@@ -614,7 +716,7 @@ async function exportarDadosPersonalizados() {
     if (qmax !== '') qs.append('quantidadeMaxima', qmax);
 
     const token = window.api.getToken();
-    const url = `http://26.117.112.62:3001/api/export/database?${qs.toString()}`;
+    const url = `http://localhost:3001/api/export/database?${qs.toString()}`;
     const resp = await fetch(url, {
       method: 'GET',
       headers: {

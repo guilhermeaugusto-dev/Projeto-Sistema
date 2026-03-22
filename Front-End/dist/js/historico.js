@@ -54,72 +54,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function carregarHistorico() {
         try {
-            const [resProdutos, resSaidas, resEntradas] = await Promise.all([
-                fetch('http://26.117.112.62:3001/api/stock').then(r => r.json()),
-                fetch("http://26.117.112.62:3001/api/stock/output").then(r => r.json()),
-                fetch("http://26.117.112.62:3001/api/stock/input").then(r => r.json())
+            const base = 'http://localhost:3001/api/stock';
+            const token = window.api ? window.api.getToken() : localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const fetchFirstOkJson = async (urls) => {
+                for (const url of urls) {
+                    try {
+                        const r = await fetch(url, { headers });
+                        if (r.ok) return await r.json();
+                        console.warn('Histórico: tentativa falhou', url, r.status);
+                    } catch (e) {
+                        console.warn('Histórico: erro ao buscar', url, e.message);
+                    }
+                }
+                return []; // fallback
+            };
+
+            const [entradas, saidas, produtos] = await Promise.all([
+                fetchFirstOkJson([`${base}/inputs`, `${base}/input`, `${base}/entradas`]),
+                fetchFirstOkJson([`${base}/outputs`, `${base}/output`, `${base}/saidas`]),
+                fetchFirstOkJson([`${base}`, `${base}/produtos`])
             ]);
 
-            // Criar mapa de produtos para buscar preços
-            const mapaProdutos = {};
-            resProdutos.forEach(p => {
-                mapaProdutos[p.id] = p;
+            const produtosCriacao = new Map();
+            (produtos || []).forEach(p => {
+                if (p.createdAt) {
+                    produtosCriacao.set(p.id, new Date(p.createdAt));
+                }
             });
 
-            // Entradas do cadastro inicial de produtos
-            const entradasCadastro = resProdutos.map(p => ({
-                id: p.id,
+            const linhasEntradas = (entradas || []).filter(e => {
+                if (!e.produto?.id || !e.createdAt) return true;
+                
+                if (e.tipo && e.tipo !== 'cadastro_inicial') {
+                    return true;
+                }
+                
+                const dataCriacaoProduto = produtosCriacao.get(e.produto.id);
+                if (!dataCriacaoProduto) return true;
+                
+                const dataEntrada = new Date(e.createdAt);
+                const diferencaMs = Math.abs(dataEntrada.getTime() - dataCriacaoProduto.getTime());
+                return diferencaMs > 5000; 
+            }).map(e => ({
+                nome: e.produto?.nome || '—',
+                quantidadeMov: e.quantidade,
+                quantidadeAtual: e.produto?.quantidade ?? e.quantidade ?? 0,
+                categoria: e.produto?.categoria || '',
+                data: e.createdAt || e.data || e.updatedAt,
+                tipo: 'entrada'
+            }));
+
+            const linhasSaidas = (saidas || []).map(s => ({
+                nome: s.produto?.nome || '—',
+                quantidadeMov: s.quantidade,
+                quantidadeAtual: s.produto?.quantidade ?? s.quantidade ?? 0,
+                categoria: s.produto?.categoria || '',
+                data: s.createdAt || s.data || s.updatedAt,
+                tipo: 'saida'
+            }));
+
+            const linhasCadastro = (produtos || []).map(p => ({
                 nome: p.nome,
-                preco: p.preco || 0,
-                quantidade: p.quantidadeInicial || p.quantidade,
-                categoria: p.categoria,
-                dataLancamento: p.createdAt,
+                quantidadeMov: p.quantidadeInicial ?? p.quantidade ?? 0,
+                quantidadeAtual: p.quantidade ?? 0,
+                categoria: p.categoria || '',
+                data: p.createdAt || p.dataCompra || p.updatedAt,
                 tipo: 'cadastro'
             }));
 
-            // Entradas reais (quando você adiciona quantidade)
-            const entradasReais = resEntradas.map(e => {
-                const produto = mapaProdutos[e.produtoId];
-                return {
-                    id: e.id,
-                    nome: e.produto.nome,
-                    preco: produto ? produto.preco || 0 : 0,
-                    quantidade: e.quantidade,
-                    categoria: e.produto.categoria,
-                    dataLancamento: e.createdAt,
-                    tipo: 'entrada'
-                };
-            });
+            produtosExibidos = [...linhasEntradas, ...linhasSaidas, ...linhasCadastro]
+                .filter(x => x.data)
+                .sort((a, b) => new Date(b.data) - new Date(a.data));
 
-            // Saídas
-            const saidas = resSaidas.map(s => {
-                const produto = mapaProdutos[s.produtoId];
-                return {
-                    id: s.id,
-                    nome: s.produto.nome,
-                    preco: produto ? produto.preco || 0 : 0,
-                    quantidade: s.quantidade,
-                    categoria: s.produto.categoria,
-                    dataLancamento: s.createdAt,
-                    tipo: 'saida'
-                };
-            });
-
-            // Combinar todas as movimentações
-            produtosExibidos = [...entradasCadastro, ...entradasReais, ...saidas]
-                .sort((a, b) => new Date(b.dataLancamento) - new Date(a.dataLancamento));
-            
-            produtosFiltrados = [...produtosExibidos];
-
-            aplicarFiltros({ ignorePaginaReset: true });
-            
-            console.log('Total de cadastros carregados:', entradasCadastro.length);
-            console.log('Total de entradas carregadas:', entradasReais.length);
-            console.log('Total de saídas carregadas:', saidas.length);
-            console.log('Total geral:', produtosExibidos.length);
+            produtosFiltrados = produtosExibidos.slice();
+            renderizarTabelaHistorico();
         } catch (error) {
-            console.error('Erro ao carregar histórico:', error);
-            corpoTabela.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Erro ao buscar histórico</td></tr>`;
+            console.error(error);
+            if (window.iziToast) {
+                iziToast.error({ title: 'Erro', message: error.message || 'Não foi possível carregar o histórico.', position: 'topRight' });
+            }
         }
     }
 
@@ -130,44 +144,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const produtosDaPagina = produtosFiltrados.slice(inicio, fim);
 
         if (produtosDaPagina.length === 0) {
-            corpoTabela.innerHTML = `<tr><td colspan="6" style="text-align:center;">Nenhum lançamento encontrado.</td></tr>`;
-            atualizarControlesPaginacao(); 
+            corpoTabela.innerHTML = `<tr><td colspan="5" style="text-align:center;">Nenhum lançamento encontrado.</td></tr>`;
+            atualizarControlesPaginacao();
             return;
         }
 
         produtosDaPagina.forEach(lancamento => {
             const tr = document.createElement('tr');
-            const precoFormatado = new Intl.NumberFormat('pt-BR', { 
-                style: 'currency', 
-                currency: 'BRL' 
-            }).format(lancamento.preco || 0);
-            const dataFormatada = new Intl.DateTimeFormat('pt-BR', { 
-                dateStyle: 'short', 
-                timeStyle: 'short' 
-            }).format(new Date(lancamento.dataLancamento));
+            const dataFormatada = new Intl.DateTimeFormat('pt-BR', {
+                dateStyle: 'short',
+                timeStyle: 'short'
+            }).format(new Date(lancamento.data));
+
             let tipoTexto = '';
             let classeCSS = '';
-            
-            switch(lancamento.tipo) {
-                case 'cadastro':
-                    tipoTexto = 'Cadastro';
-                    classeCSS = 'cadastro';
-                    break;
-                case 'entrada':
-                    tipoTexto = 'Entrada';
-                    classeCSS = 'entrada';
-                    break;
-                case 'saida':
-                    tipoTexto = 'Saída';
-                    classeCSS = 'saida';
-                    break;
+            switch (lancamento.tipo) {
+                case 'cadastro': tipoTexto = 'Cadastro'; classeCSS = 'cadastro'; break;
+                case 'entrada':  tipoTexto = 'Entrada';  classeCSS = 'entrada';  break;
+                case 'saida':    tipoTexto = 'Saída';    classeCSS = 'saida';    break;
             }
-            
+
             tr.className = classeCSS;
             tr.innerHTML = `
                 <td>${lancamento.nome}</td>
-                <td>${precoFormatado}</td>
-                <td>${lancamento.quantidade}</td>
+                <td>${lancamento.quantidadeMov}</td>   <!-- MUDANÇA: mostra a QUANTIDADE DA MOVIMENTAÇÃO -->
                 <td>${lancamento.categoria || '-'}</td>
                 <td>${dataFormatada}</td>
                 <td>${tipoTexto}</td>
@@ -214,28 +214,20 @@ document.addEventListener('DOMContentLoaded', () => {
             let atende = true;
             if (termo) atende = atende && (p.nome || '').toLowerCase().includes(termo);
             if (filtroData) {
-                const dataProduto = new Date(p.dataLancamento).toISOString().split("T")[0];
+                const dataProduto = new Date(p.data).toISOString().split("T")[0];
                 atende = atende && dataProduto === filtroData;
             }
             if (filtroCategoria) atende = atende && (p.categoria || '').toLowerCase().includes(filtroCategoria);
             if (filtroTipo) {
-                // Mapear tipos de filtro para os tipos internos
-                if (filtroTipo === 'entrada') {
-                    atende = atende && p.tipo === 'entrada';
-                } else if (filtroTipo === 'saida') {
-                    atende = atende && p.tipo === 'saida';
-                } else if (filtroTipo === 'cadastro') {
-                    atende = atende && p.tipo === 'cadastro';
-                }
+                if (filtroTipo === 'entrada') atende = atende && p.tipo === 'entrada';
+                else if (filtroTipo === 'saida') atende = atende && p.tipo === 'saida';
+                else if (filtroTipo === 'cadastro') atende = atende && p.tipo === 'cadastro';
             }
             return atende;
         });
 
-        if (filtroQuantidade === "maior") {
-            resultado.sort((a, b) => b.quantidade - a.quantidade);
-        } else if (filtroQuantidade === "menor") {
-            resultado.sort((a, b) => a.quantidade - b.quantidade);
-        }
+        if (filtroQuantidade === "maior")      resultado.sort((a, b) => (b.quantidadeAtual ?? 0) - (a.quantidadeAtual ?? 0));
+        else if (filtroQuantidade === "menor") resultado.sort((a, b) => (a.quantidadeAtual ?? 0) - (b.quantidadeAtual ?? 0));
 
         produtosFiltrados = resultado;
         if (!options.ignorePaginaReset) paginaAtual = 1;
@@ -349,7 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Função para exportar histórico
     async function exportarHistorico() {
         try {
             const submitBtn = formExportar.querySelector('button[type="submit"]');
@@ -358,7 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Gerando...';
 
-            // Coletar dados do formulário
             const tipoMovimentacao = document.getElementById('tipo-movimentacao').value;
             const categoria = document.getElementById('categoria-export').value;
             const dataInicio = document.getElementById('data-inicio').value;
@@ -375,17 +365,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 quantidadeMaxima
             });
 
-            // Construir URL com parâmetros - garantir formato correto das datas
             const params = new URLSearchParams();
             if (tipoMovimentacao) params.append('tipoMovimentacao', tipoMovimentacao);
             if (categoria) params.append('categoria', categoria);
             if (dataInicio) {
-                // Garantir formato YYYY-MM-DD
                 const dataInicioFormatada = new Date(dataInicio).toISOString().split('T')[0];
                 params.append('dataInicio', dataInicioFormatada);
             }
             if (dataFim) {
-                // Garantir formato YYYY-MM-DD
                 const dataFimFormatada = new Date(dataFim).toISOString().split('T')[0];
                 params.append('dataFim', dataFimFormatada);
             }
@@ -395,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Parâmetros enviados:', Object.fromEntries(params));
 
             const token = window.api ? window.api.getToken() : localStorage.getItem('token');
-            const url = `http://26.117.112.62:3001/api/export/historico?${params.toString()}`;
+            const url = `http://localhost:3001/api/export/historico?${params.toString()}`;
             
             console.log('URL de exportação:', url);
 
@@ -410,14 +397,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Erro ao gerar relatório de histórico');
             }
 
-            // Download do arquivo
             const blob = await response.blob();
             const downloadUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = downloadUrl;
             
-            // Nome do arquivo baseado nos filtros
             let nomeArquivo = 'historico';
             if (tipoMovimentacao) nomeArquivo += `_${tipoMovimentacao}`;
             if (categoria) nomeArquivo += `_${categoria.replace(/\s+/g, '_')}`;

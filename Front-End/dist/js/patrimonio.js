@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let todosOsPatrimonios = [];
     let patrimoniosExibidos = [];
     let paginaAtual = 1;
-    const ITENS_POR_PAGINA = 10;
+    const ITENS_POR_PAGINA = 5;
 
     const corpoTabela = document.getElementById('corpo-tabela');
     const filtroInput = document.getElementById('filtro-pesquisa');
@@ -90,6 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnFecharEditarNumero = document.getElementById('fechar-editar-numero');
     const formEditarNumero = document.getElementById('form-editar-numero');
 
+    // Campos de edição de patrimônio
+    const inputEditarNome = document.getElementById('editar-nome-patrimonio');
+    const inputEditarLocal = document.getElementById('editar-local-patrimonio');
+    const inputEditarResponsavel = document.getElementById('editar-responsavel-patrimonio');
+    const selectEditarEstado = document.getElementById('editar-estado-patrimonio');
+    const inputEditarImagem = document.getElementById('editar-imagem-patrimonio');
+    const inputEditarPreco = document.getElementById('editar-preco');
+
     // Modal de exportação - elementos
     const btnExportar = document.getElementById('btn-exportar');
     const modalExportarContainer = document.getElementById('modal-exportar-container');
@@ -111,20 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       patrimoniosDaPagina.forEach(p => {
         let imagemHtml = 'Sem Imagem';
-        let bytesDaImagem = null;
-
-        if (p.imagem) {
-          if (Array.isArray(p.imagem.data)) {
-            bytesDaImagem = p.imagem.data;
-          } else if (typeof p.imagem === 'object' && !p.imagem.data) {
-            bytesDaImagem = Object.values(p.imagem);
-          }
-        }
-
-        if (bytesDaImagem) {
-          const blob = new Blob([new Uint8Array(bytesDaImagem)], { type: 'image/jpeg' });
-          const imageUrl = URL.createObjectURL(blob);
-          imagemHtml = `<a href="${imageUrl}" target="_blank" rel="noopener noreferrer" class="ver-imagem-link">Ver Imagem</a>`;
+        if (p.temImagem) {
+          imagemHtml = `<a href="#" class="ver-imagem-link" data-id="${p.numeroTombo}">Ver Imagem</a>`;
         }
 
         const novaLinha = document.createElement('tr');
@@ -134,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${p.local}</td>
           <td>${p.responsavel}</td>
           <td>${p.estado}</td>
+          <td>${p.preco}</td>
           <td>${p.numeroNotaFiscal || 'Não informado'}</td>
           <td>${imagemHtml}</td>
           <td>
@@ -172,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!response.ok) throw new Error('Erro ao buscar os patrimônios');
         todosOsPatrimonios = await response.json();
         patrimoniosExibidos = [...todosOsPatrimonios];
+        console.log('Patrimônios carregados:', todosOsPatrimonios);
         renderizarTabela();
       } catch (error) {
         console.error(error);
@@ -185,8 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       patrimoniosExibidos = todosOsPatrimonios.filter(p => {
         const nomeValido = p.nome.toLowerCase().includes(termoBusca);
+        const numeroTomboValido = String(p.numeroTombo).includes(termoBusca);
         const estadoValido = estadoSelecionado ? p.estado === estadoSelecionado : true;
-        return nomeValido && estadoValido;
+        return (nomeValido || numeroTomboValido) && estadoValido;
       });
 
       paginaAtual = 1;
@@ -243,6 +242,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Ações da tabela (transferir, editar, detalhes, deletar)
     corpoTabela.addEventListener('click', async (e) => {
+      const verImagemLink = e.target.closest('.ver-imagem-link');
+      if (verImagemLink) {
+        e.preventDefault();
+        const patrimonioId = verImagemLink.dataset.id;
+        if (!patrimonioId) return;
+
+        try {
+          const resp = await fetch(`http://26.117.112.62:3001/api/property/patrimonio/${patrimonioId}/imagem`, {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          if (!resp.ok) throw new Error('Erro ao buscar imagem');
+
+          const blob = await resp.blob();
+          const imageUrl = URL.createObjectURL(blob);
+          window.open(imageUrl, '_blank', 'noopener');
+          setTimeout(() => URL.revokeObjectURL(imageUrl), 60000);
+        } catch (error) {
+          console.error(error);
+          window.iziToast?.error({ title: 'Erro', message: error.message || 'Erro ao buscar imagem' });
+        }
+        return;
+      }
+
       const btn = e.target.closest('button.action-btn');
       if (!btn) return;
 
@@ -266,6 +288,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('editar-numero-atual').value = String(patrimonio.numeroTombo).padStart(5,'0');
         document.getElementById('editar-novo-numero').value = '';
         document.getElementById('editar-numero-nota-fiscal').value = patrimonio.numeroNotaFiscal || '';
+
+        if (inputEditarNome) inputEditarNome.value = patrimonio.nome || '';
+        if (inputEditarLocal) inputEditarLocal.value = patrimonio.local || '';
+        if (inputEditarResponsavel) inputEditarResponsavel.value = patrimonio.responsavel || '';
+        if (selectEditarEstado) selectEditarEstado.value = patrimonio.estado || '';
+        if (inputEditarPreco) {
+          if (patrimonio.preco !== null && patrimonio.preco !== undefined) {
+            inputEditarPreco.value = String(patrimonio.preco).replace('.', ',');
+          } else {
+            inputEditarPreco.value = '';
+          }
+        }
+
+        if (inputEditarImagem) inputEditarImagem.value = '';
         toggleModal(modalEditarNumero, true);
         return;
       }
@@ -423,48 +459,45 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Form para editar número do tombo
+    // Form para editar patrimônio (número do tombo, nota fiscal, dados gerais)
     formEditarNumero.addEventListener('submit', async (e) => {
       e.preventDefault();
       const idAtual = document.getElementById('editar-numero-id-atual').value;
       const novoNumero = document.getElementById('editar-novo-numero').value;
       const numeroNotaFiscal = document.getElementById('editar-numero-nota-fiscal').value;
-      
-      const patrimonio = todosOsPatrimonios.find(p => p.numeroTombo == idAtual);
-      if (!patrimonio) return;
 
-      const numeroFoiAlterado = novoNumero && novoNumero.trim() !== '' && Number(novoNumero) !== Number(patrimonio.numeroTombo);
-      const notaFiscalAtual = patrimonio.numeroNotaFiscal || '';
-      const notaFiscalNova = numeroNotaFiscal || '';
-      const notaFiscalFoiAlterada = notaFiscalNova !== notaFiscalAtual;
-
-      if (!numeroFoiAlterado && !notaFiscalFoiAlterada) {
-        iziToast.warning({ 
-          title: 'Aviso', 
-          message: 'Nenhuma alteração foi feita!' 
-        });
-        return;
-      }
-
-      // Usar sempre a mesma rota, mas enviar apenas campos alterados
-      const dados = {};
-      
-      if (numeroFoiAlterado) {
-        dados.numeroTombo = Number(novoNumero);
-      }
-      
-      if (notaFiscalFoiAlterada) {
-        dados.numeroNotaFiscal = notaFiscalNova;
-      }
+      const btnSubmit = formEditarNumero.querySelector('button[type="submit"]');
 
       try {
+        const formData = new FormData();
+
+        if (novoNumero && novoNumero.trim() !== '') {
+          formData.append('numeroTombo', novoNumero.trim());
+        }
+
+        formData.append('numeroNotaFiscal', numeroNotaFiscal || '');
+
+        if (inputEditarNome) formData.append('nome', inputEditarNome.value || '');
+        if (inputEditarLocal) formData.append('local', inputEditarLocal.value || '');
+        if (inputEditarResponsavel) formData.append('responsavel', inputEditarResponsavel.value || '');
+        if (selectEditarEstado) formData.append('estado', selectEditarEstado.value || '');
+        if (inputEditarPreco) formData.append('preco', inputEditarPreco.value || '');
+
+        if (inputEditarImagem && inputEditarImagem.files && inputEditarImagem.files[0]) {
+          formData.append('imagem', inputEditarImagem.files[0]);
+        }
+
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.textContent = 'Salvando...';
+        }
+
         const response = await fetch(`http://26.117.112.62:3001/api/property/${idAtual}`, {
           method: 'PUT',
           headers: { 
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
+            "Authorization": `Bearer ${token}`
           },
-          body: JSON.stringify(dados)
+          body: formData
         });
 
         if (!response.ok) {
@@ -487,6 +520,11 @@ document.addEventListener('DOMContentLoaded', () => {
           title: 'Erro', 
           message: error.message || 'Erro ao atualizar patrimônio'
         });
+      } finally {
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Salvar';
+        }
       }
     });
 

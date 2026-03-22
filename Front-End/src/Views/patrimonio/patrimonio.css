@@ -275,7 +275,7 @@ li {
 
 .tabela-estoque thead th {
   font-weight: 700;
-  font-size: 20px; /* Diminuído de 25px para 20px */
+  font-size: 16px;
   color: #000; 
   padding: 6px 8px;
   vertical-align: middle;
@@ -305,9 +305,9 @@ background: linear-gradient(0deg, #DC3545, #DC3545);
 .tabela-estoque tbody td {
   font-family: 'Century Gothic';
   font-weight: 400;
-  font-size: 20px; /* Diminuído de 25px para 20px */
+  font-size: 16px;
   text-align: left;
-  padding: 8px 10px; /* Diminuído o padding também */
+  padding: 6px 8px;
 }
 
 .coluna-nome {

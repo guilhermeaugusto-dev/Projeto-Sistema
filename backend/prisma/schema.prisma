@@ -56,6 +56,7 @@ model Patrimonio {
   local       String
   responsavel String
   preco       Float
+  dataAquisicao DateTime?
   estado      String   // "Em uso", "Bom", "Quebrado", etc.
   numeroNotaFiscal String?
   imagem      Bytes?

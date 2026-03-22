@@ -456,6 +456,13 @@ export const exportPatrimonio = async (req, res) => {
       dataFim
     } = req.query;
 
+    const parseLocalDate = (value, isInicio) => {
+      if (!value || String(value).trim() === '') return null;
+      const [y, m, d] = String(value).split('-').map(Number);
+      if (!y || !m || !d) return null;
+      return new Date(y, m - 1, d, isInicio ? 0 : 23, isInicio ? 0 : 59, isInicio ? 0 : 59, isInicio ? 0 : 999);
+    };
+
     console.log('Filtros patrimônio recebidos:', req.query);
 
     // Construir filtros para patrimônio
@@ -476,15 +483,15 @@ export const exportPatrimonio = async (req, res) => {
 
     // Filtro por data de cadastro
     if (dataInicio || dataFim) {
-      filtros.createdAt = {};
-      if (dataInicio) {
-        filtros.createdAt.gte = new Date(dataInicio);
-      }
-      if (dataFim) {
-        const dataFimAjustada = new Date(dataFim);
-        dataFimAjustada.setHours(23, 59, 59, 999);
-        filtros.createdAt.lte = dataFimAjustada;
-      }
+      const dataInicioLocal = parseLocalDate(dataInicio, true);
+      const dataFimLocal = parseLocalDate(dataFim, false);
+      const range = {};
+      if (dataInicioLocal) range.gte = dataInicioLocal;
+      if (dataFimLocal) range.lte = dataFimLocal;
+      filtros.OR = [
+        { dataAquisicao: range },
+        { dataAquisicao: null, createdAt: range }
+      ];
     }
 
     console.log('Filtros aplicados:', filtros);
@@ -503,6 +510,7 @@ export const exportPatrimonio = async (req, res) => {
     if (patrimonios.length > 0) {
       const patrimoniosFormatados = patrimonios.map(p => {
         const dataCadastro = new Date(p.createdAt);
+        const dataAquisicao = p.dataAquisicao ? new Date(p.dataAquisicao) : dataCadastro;
         return {
           'Nº Tombo': String(p.numeroTombo).padStart(5, '0'),
           'Nome': p.nome || '',
@@ -511,6 +519,7 @@ export const exportPatrimonio = async (req, res) => {
           'Estado': p.estado || '',
           'Número Nota Fiscal': p.numeroNotaFiscal || '',
           'Preço (R$)': p.preco ?? '',
+          'Data de Aquisição': dataAquisicao.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
           'Data de Cadastro': dataCadastro.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
           'Dia da Semana (Cadastro)': dataCadastro.toLocaleDateString('pt-BR', { weekday: 'long' }),
           'Hora de Cadastro': dataCadastro.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })

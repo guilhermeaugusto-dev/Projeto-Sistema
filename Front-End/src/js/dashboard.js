@@ -28,7 +28,7 @@ async function criarGraficoCategorias(labels, data) {
 
 async function carregarCategorias(token) {
   try {
-    const response = await fetch("http://26.117.112.62:3001/api/stock", {
+    const response = await fetch("http://localhost:3001/api/stock", {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     if (!response.ok) throw new Error('Falha ao carregar produtos');
@@ -50,11 +50,11 @@ async function carregarCategorias(token) {
 
 async function carregarEntradasESaidas(token) {
   try {
-    const respEntradas = await fetch("http://26.117.112.62:3001/api/stock/input", {
+    const respEntradas = await fetch("http://localhost:3001/api/stock/input", {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     
-    const respSaidas = await fetch("http://26.117.112.62:3001/api/stock/output", {
+    const respSaidas = await fetch("http://localhost:3001/api/stock/output", {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
 
@@ -182,7 +182,7 @@ async function carregarEntradasESaidas(token) {
 
 async function carregarKPIs(token) {
   try {
-    const response = await fetch("http://26.117.112.62:3001/api/auth/kpis", {
+    const response = await fetch("http://localhost:3001/api/auth/kpis", {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     let data = {};

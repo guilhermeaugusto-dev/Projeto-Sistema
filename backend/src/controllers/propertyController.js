@@ -2,15 +2,27 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+const parseDateOnly = (value) => {
+  if (!value || String(value).trim() === '') return null;
+  const [y, m, d] = String(value).split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+};
+
 
 export const createPatrimonio = async (req, res) => {
-  const { numeroTombo, nome, local, responsavel, estado, numeroNotaFiscal, preco } = req.body;
+  const { numeroTombo, nome, local, responsavel, estado, numeroNotaFiscal, preco, dataAquisicao } = req.body;
   const imagem = req.file?.buffer || null; 
 
   try {
     const numeroTomboInt = parseInt(numeroTombo, 10);
     if (!numeroTombo || isNaN(numeroTomboInt)) {
       return res.status(400).json({ error: "numeroTombo é obrigatório e deve ser numérico." });
+    }
+
+    const dataAquisicaoDate = parseDateOnly(dataAquisicao);
+    if (!dataAquisicaoDate) {
+      return res.status(400).json({ error: "dataAquisicao é obrigatória e deve ser válida." });
     }
 
   
@@ -39,6 +51,7 @@ export const createPatrimonio = async (req, res) => {
         local,
         responsavel,
         estado,
+        dataAquisicao: dataAquisicaoDate,
         numeroNotaFiscal: numeroNotaFiscal || null,
         ...(imagem ? { imagem } : {}),
         ...(precoNumber !== null ? { preco: precoNumber } : {})
@@ -75,7 +88,7 @@ export const updatePatrimonio = async (req, res) => {
       return res.status(404).json({ error: "Patrimônio não encontrado." });
     }
 
-    const { numeroTombo, nome, local, responsavel, estado, numeroNotaFiscal, preco, imagem: imagemBase64 } = req.body;
+    const { numeroTombo, nome, local, responsavel, estado, numeroNotaFiscal, preco, dataAquisicao, imagem: imagemBase64 } = req.body;
     const imagemFile = req.file?.buffer || null;
 
     console.log('updatePatrimonio chamado:', {
@@ -117,6 +130,18 @@ export const updatePatrimonio = async (req, res) => {
     
     if (responsavel !== undefined && responsavel !== patrimonioAtual.responsavel) {
       updates.responsavel = responsavel;
+    }
+
+    if (dataAquisicao !== undefined) {
+      if (String(dataAquisicao).trim() === '') {
+        updates.dataAquisicao = null;
+      } else {
+        const dataAquisicaoDate = parseDateOnly(dataAquisicao);
+        if (!dataAquisicaoDate) {
+          return res.status(400).json({ error: "dataAquisicao inválida." });
+        }
+        updates.dataAquisicao = dataAquisicaoDate;
+      }
     }
     
     if (estado !== undefined && estado !== patrimonioAtual.estado) {
@@ -215,6 +240,7 @@ export const getAllProperty = async (req, res) => {
         "estado",
         "preco",
         "numeroNotaFiscal",
+        "dataAquisicao",
         ("imagem" IS NOT NULL) AS "temImagem"
       FROM "Patrimonio"
       ORDER BY "numeroTombo" ASC
