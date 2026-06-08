@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+enum Role {
+  USER
+  ADMIN
+}
+
+model Usuario {
+  id     String  @id @default(uuid())
+  nome   String
+  email  String  @unique
+  senha  String
+  role     Role   @default(USER)
+
+}
+
+model Produto {
+  id          String   @id @default(uuid())
+  nome        String
+  descricao   String?
+  quantidadeInicial Int      
+  quantidade  Int
+  categoria   String?
+  dataCompra  DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  entradas    EntradaProduto[] @relation("EntradasProduto")
+  saidas      saidaProduto[]
+}
+model EntradaProduto {
+  id         String   @id @default(cuid())
+  quantidade Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  produto    Produto  @relation("EntradasProduto", fields: [produtoId], references: [id])
+  produtoId  String
+}
+
+
+model saidaProduto {
+  id          String   @id @default(uuid())
+  quantidade  Int
+  createdAt   DateTime @default(now())
+  produto     Produto  @relation(fields: [produtoId], references: [id])
+  produtoId   String
+}
+model Patrimonio {
+  numeroTombo Int @id
+  nome        String
+  local       String
+  responsavel String
+  preco       Float
+  dataAquisicao DateTime?
+  estado      String 
+  numeroNotaFiscal String?
+  imagem      Bytes?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  movimentacoes   Movimentacao[]
+}
+
+model Movimentacao {
+  id              String     @id @default(uuid())
+  patrimonioId    Int
+  patrimonio      Patrimonio @relation(fields: [patrimonioId], references: [numeroTombo])
+  deLocal         String?
+  paraLocal       String?
+  deResponsavel   String?
+  paraResponsavel String?
+  observacao      String?
+  createdAt       DateTime   @default(now())
+}
