@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-  console.error('⚠️ JWT_SECRET não definido. Defina a variável de ambiente JWT_SECRET.');
+  console.error('JWT_SECRET não definido. Defina a variável de ambiente JWT_SECRET.');
 }
 export const verifyToken = (req, res, next) => {
   try {
@@ -17,8 +17,7 @@ export const verifyToken = (req, res, next) => {
     const scheme = parts[0];
     const token = parts[1];
 
-    if (!/^Bearer$/i.test(scheme)) return res.status(401).json({ error: 'Token mal formatado.' });
-
+ 
     const payload = jwt.verify(token, JWT_SECRET);
     req.user = payload; 
     next();

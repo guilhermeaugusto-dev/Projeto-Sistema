@@ -8,40 +8,40 @@ const SALT_ROUNDS = Number(process.env.SALT_ROUNDS) || 10;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-  console.error('⚠️ JWT_SECRET não definido. Defina a variável de ambiente JWT_SECRET.');
+  console.error(' JWT_SECRET não definido. Defina a variável de ambiente JWT_SECRET.');
 }
 
 export const register = async (req, res) => {
-  const { nome, username, senha, role } = req.body;
+  const { nome, email, senha, makeAdmin } = req.body;
 
-  if (!nome || !username || !senha) {
-    return res.status(400).json({ error: 'nome, username e senha são obrigatórios.' });
+  if (!nome || !email || !senha) {
+    return res.status(400).json({ error: 'nome, email e senha são obrigatórios.' });
   }
 
   try {
-    const existingUser = await prisma.usuario.findUnique({ where: { username } });
+    const existingUser = await prisma.usuario.findUnique({ where: { email } });
     if (existingUser) {
-      return res.status(409).json({ error: 'Nome de usuário já está em uso.' });
+      return res.status(409).json({ error: 'O email já está em uso.' });
     }
-
+    
     const hashedPassword = await bcrypt.hash(senha, SALT_ROUNDS);
+    const authenticatedRole = typeof req.user?.role === 'string' ? req.user.role.toUpperCase() : undefined;
+    const wantsAdmin = makeAdmin === true || makeAdmin === 'true' || makeAdmin === 1 || makeAdmin === '1';
+    const roleToSet = authenticatedRole === 'ADMIN' && wantsAdmin ? 'ADMIN' : undefined;
 
-    // Validação simples de role — só permite USER ou ADMIN
-    const normalizedRole = (role || 'USER').toUpperCase();
-    const allowedRoles = ['USER', 'ADMIN'];
-    const finalRole = allowedRoles.includes(normalizedRole) ? normalizedRole : 'USER';
+    const userData = {
+      nome,
+      email,
+      senha: hashedPassword,
+    };
+    if (roleToSet) userData.role = roleToSet;
 
     const novoUsuario = await prisma.usuario.create({
-      data: {
-        nome,
-        username,
-        senha: hashedPassword,
-        role: finalRole,
-      },
+      data: userData,
       select: {
         id: true,
         nome: true,
-        username: true,
+        email: true,
         role: true,
       },
     });
@@ -54,9 +54,9 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { username, senha } = req.body;
-  if (!username || !senha) {
-    return res.status(400).json({ error: 'username e senha são obrigatórios.' });
+  const { email, senha } = req.body;
+  if (!email || !senha) {
+    return res.status(400).json({ error: 'email e senha são obrigatórios.' });
   }
 
   if (!JWT_SECRET) {
@@ -65,7 +65,7 @@ export const login = async (req, res) => {
   }
 
   try {
-    const usuario = await prisma.usuario.findUnique({ where: { username } });
+    const usuario = await prisma.usuario.findUnique({ where: { email } });
 
     if (!usuario) {
       return res.status(401).json({ error: 'Credenciais inválidas.' });
@@ -77,7 +77,7 @@ export const login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: usuario.id, username: usuario.username, role: usuario.role },
+      { id: usuario.id, email: usuario.email, role: usuario.role },
       JWT_SECRET,
       { expiresIn: '8h' }
     );
@@ -88,7 +88,7 @@ export const login = async (req, res) => {
       usuario: {
         id: usuario.id,
         nome: usuario.nome,
-        username: usuario.username,
+        email: usuario.email,
         role: usuario.role,
       },
     });
@@ -112,7 +112,7 @@ export const getKPIs = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const usuarios = await prisma.usuario.findMany({
-      select: { id: true, nome: true, username: true, role: true },
+      select: { id: true, nome: true, email: true, role: true },
       orderBy: { id: 'asc' },
     });
     return res.status(200).json(usuarios);

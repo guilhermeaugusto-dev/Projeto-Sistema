@@ -8,7 +8,7 @@ const router = express.Router();
 
 
 router.post('/login', login);
-router.post('/register', register);
+router.post('/register', verifyToken, isAdmin, register);
 router.get('/users', verifyToken, isAdmin, getAllUsers);
 router.get('/kpis', getKPIs);
 

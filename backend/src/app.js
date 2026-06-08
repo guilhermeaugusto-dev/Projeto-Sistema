@@ -15,7 +15,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/property', propertyRoutes);
-app.use('/api/transfer', transferRoutes);
 app.use('/api/export', exportRoutes);
 export default app;
 

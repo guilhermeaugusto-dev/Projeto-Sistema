@@ -110,10 +110,10 @@ export const exportDatabase = async (req, res) => {
     res.setHeader('Content-Length', buffer.length);
     res.send(buffer);
 
-    console.log(`✅ Relatório de produtos gerado: ${nomeArquivo}`);
-    console.log(`📊 ${produtos.length} produtos exportados`);
+    console.log(`Relatório de produtos gerado: ${nomeArquivo}`);
+    console.log(`${produtos.length} produtos exportados`);
   } catch (error) {
-    console.error('❌ Erro ao exportar produtos:', error);
+    console.error(' Erro ao exportar produtos:', error);
     res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
   }
 };
@@ -151,7 +151,6 @@ export const exportHistorico = async (req, res) => {
 
     let movimentacoes = [];
 
-    // FILTRO ESPECÍFICO: Se tipoMovimentacao é "cadastro", APENAS processar cadastros
     if (tipoMovimentacao === 'cadastro') {
       console.log('📝 PROCESSANDO APENAS CADASTROS');
       
@@ -255,7 +254,6 @@ export const exportHistorico = async (req, res) => {
                   select: {
                     nome: true,
                     categoria: true,
-              
                     descricao: true
                   }
                 }
