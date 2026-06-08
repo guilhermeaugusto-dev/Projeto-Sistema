@@ -31,7 +31,7 @@ model Produto {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   entradas    EntradaProduto[] @relation("EntradasProduto")
-  saidas     saidaProduto[]
+  saidas      saidaProduto[]
 }
 model EntradaProduto {
   id         String   @id @default(cuid())
@@ -63,4 +63,17 @@ model Patrimonio {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  movimentacoes   Movimentacao[]
+}
+
+model Movimentacao {
+  id              String     @id @default(uuid())
+  patrimonioId    Int
+  patrimonio      Patrimonio @relation(fields: [patrimonioId], references: [numeroTombo])
+  deLocal         String?
+  paraLocal       String?
+  deResponsavel   String?
+  paraResponsavel String?
+  observacao      String?
+  createdAt       DateTime   @default(now())
 }

@@ -3,12 +3,9 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 
-
-
-
 export const transferPatrimonio = async (req, res) => {
   try {
-    const { patrimonioId } = req.params; // vem da rota
+    const { patrimonioId } = req.params; 
     const { novoLocal, novoResponsavel, observacao } = req.body;
 
     
@@ -19,10 +16,6 @@ export const transferPatrimonio = async (req, res) => {
     if (!patrimonio) {
       return res.status(404).json({ error: 'Patrimônio não encontrado' });
     }
-
-
-    
-    // Cria registro de movimentação
     const movimentacao = await prisma.movimentacao.create({
       data: {
         patrimonioId: Number(patrimonio.numeroTombo),
@@ -34,7 +27,6 @@ export const transferPatrimonio = async (req, res) => {
       },
     });
 
-    // Atualiza patrimônio com os novos dados
     const patrimonioAtualizado = await prisma.patrimonio.update({
       where: { numeroTombo: Number(patrimonio.numeroTombo) },
       data: {
