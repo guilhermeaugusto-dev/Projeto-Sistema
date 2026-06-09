@@ -9,12 +9,13 @@ import {
   Shield,
   ClipboardList,
 } from "lucide-react";
+import {Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "../Login/login.css";
-import { Link } from "react-router-dom";
-
+import { cadastrar_login } from "../../servicos/autenticar_Login";
 
 export function Registro() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -34,7 +35,7 @@ export function Registro() {
     });
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (formData.senha !== formData.confirmarSenha) {
@@ -42,11 +43,13 @@ export function Registro() {
       return;
     }
 
-    console.log("Dados do cadastro:", formData);
-
-    // Aqui depois você vai conectar com sua API
-    // Exemplo:
-    // POST /api/auth/register
+    try {
+      await cadastrar_login(formData.nome, formData.email, formData.senha);
+      alert("Cadastro realizado com sucesso.");
+      navigate('/');
+    } catch (error: any) {
+      alert(error?.message || "Erro ao cadastrar");
+    }
   }
 
   return (

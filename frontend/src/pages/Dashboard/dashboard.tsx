@@ -1,21 +1,16 @@
 import {
-  BarChart3,
-  Boxes,
   ClipboardList,
-  Home,
-  LogOut,
   Package,
   Plus,
   Search,
-  Settings,
   ShieldCheck,
   TrendingDown,
   TrendingUp,
-  Users,
-  Warehouse,
+
 } from "lucide-react";
 
 import "./dashboard.css";
+import { Sidebar } from "../../componentes/sidebar";
 
 export function Dashboard() {
   const stats = [
@@ -98,62 +93,15 @@ export function Dashboard() {
       status: "Baixo estoque",
     },
   ];
+const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
 
   return (
     <main className="dashboard-page">
-      <aside className="sidebar">
-        <div className="sidebar-brand">
-          <div className="sidebar-logo">
-            <Boxes size={28} />
-          </div>
-
-          <div>
-            <h1>Sistema Gestão</h1>
-          </div>
-        </div>
-
-        <nav className="sidebar-menu">
-          <a href="#" className="menu-item active">
-            <Home size={20} />
-            Dashboard
-          </a>
-
-          <a href="#" className="menu-item">
-            <Package size={20} />
-            Produtos
-          </a>
-
-          <a href="#" className="menu-item">
-            <Warehouse size={20} />
-            Estoque
-          </a>
-
-          <a href="#" className="menu-item">
-            <ShieldCheck size={20} />
-            Patrimônio
-          </a>
-
-          <a href="#" className="menu-item">
-            <Users size={20} />
-            Usuários
-          </a>
-
-          <a href="#" className="menu-item">
-            <Settings size={20} />
-            Configurações
-          </a>
-        </nav>
-
-        <button className="logout-button">
-          <LogOut size={20} />
-          Sair
-        </button>
-      </aside>
-
+      <Sidebar />
       <section className="dashboard-content">
         <header className="dashboard-header">
           <div>
-            <p>Olá, Guilherme 👋</p>
+            <p>Olá, {usuario.nome} 👋</p>
             <h2>Dashboard</h2>
           </div>
 
